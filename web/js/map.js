@@ -58,20 +58,22 @@ const FREE_OSM_STYLE = {
 // Initialize the map
 const map = new maplibregl.Map({
     container: 'map',
-    // Temporarily using OSM while debugging Mapbox
-    style: FREE_OSM_STYLE,
-    // style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
-    //     ? `${CONFIG.BASEMAPS.streets}?access_token=${CONFIG.MAPBOX_TOKEN}`
-    //     : FREE_OSM_STYLE, // Free OpenStreetMap fallback
+    // Use Mapbox if token configured, otherwise fallback to OSM
+    style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
+        ? CONFIG.BASEMAPS.streets  // Don't add token here - transformRequest will handle it
+        : FREE_OSM_STYLE,
     center: CONFIG.CENTER,
     zoom: CONFIG.ZOOM,
     transformRequest: (url, resourceType) => {
-        // Add Mapbox token to tile and other requests if configured
+        // Add Mapbox token to all Mapbox API requests if configured
         if (CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE' && url.includes('mapbox.com')) {
-            const separator = url.includes('?') ? '&' : '?';
-            return {
-                url: `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`
-            };
+            // Check if token is already in the URL to avoid duplicates
+            if (!url.includes('access_token=')) {
+                const separator = url.includes('?') ? '&' : '?';
+                return {
+                    url: `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`
+                };
+            }
         }
         return { url };
     }
@@ -177,11 +179,77 @@ async function loadAOI() {
     }
 }
 
+// Create color scale for NDVI (0.2 to 0.8)
+function getNDVIColor(value) {
+    if (value < 0.2) return [211, 48, 39, 180];      // Red - very low
+    if (value < 0.3) return [252, 141, 89, 180];     // Orange-red - low
+    if (value < 0.4) return [254, 224, 139, 180];    // Yellow - moderate-low
+    if (value < 0.5) return [217, 239, 139, 180];    // Yellow-green - moderate
+    if (value < 0.6) return [145, 207, 96, 180];     // Light green - moderate-high
+    if (value < 0.7) return [26, 152, 80, 180];      // Green - high
+    return [0, 104, 55, 200];                        // Dark green - very high
+}
+
+// Custom canvas-based renderer as fallback
+async function loadNDVIWithCanvas(georaster) {
+    console.log('Using custom canvas renderer for NDVI');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = georaster.width;
+    canvas.height = georaster.height;
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+
+    // Render each pixel
+    for (let y = 0; y < georaster.height; y++) {
+        for (let x = 0; x < georaster.width; x++) {
+            const value = georaster.values[0][y][x];
+            const color = getNDVIColor(value);
+            const idx = (y * canvas.width + x) * 4;
+            imageData.data[idx] = color[0];     // R
+            imageData.data[idx + 1] = color[1]; // G
+            imageData.data[idx + 2] = color[2]; // B
+            imageData.data[idx + 3] = color[3]; // A
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Get bounds from georaster
+    const bounds = [
+        [georaster.xmin, georaster.ymin],
+        [georaster.xmax, georaster.ymax]
+    ];
+
+    // Add as image source
+    map.addSource('ndvi-raster', {
+        type: 'image',
+        url: canvas.toDataURL(),
+        coordinates: [
+            [georaster.xmin, georaster.ymax], // top-left
+            [georaster.xmax, georaster.ymax], // top-right
+            [georaster.xmax, georaster.ymin], // bottom-right
+            [georaster.xmin, georaster.ymin]  // bottom-left
+        ]
+    });
+
+    map.addLayer({
+        id: 'ndvi-layer',
+        type: 'raster',
+        source: 'ndvi-raster',
+        paint: {
+            'raster-opacity': 0.7
+        }
+    }, 'aoi-fill');
+
+    return true;
+}
+
 // Load NDVI raster
 async function loadNDVI() {
-    // Check if GeoRaster libraries are available
-    if (typeof parseGeoraster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
-        console.error('GeoRaster libraries not loaded');
+    // Check if GeoRaster parser is available (required for both methods)
+    if (typeof parseGeoraster === 'undefined') {
+        console.error('GeoRaster library not loaded');
         hideLoading();
         alert('NDVI visualization requires GeoRaster library. Please check console for errors.');
         return false;
@@ -203,31 +271,29 @@ async function loadNDVI() {
         const georaster = await parseGeoraster(arrayBuffer);
         console.log('GeoTIFF parsed successfully');
 
-        // Create color scale for NDVI (0.2 to 0.8)
-        const colorScale = (value) => {
-            if (value < 0.2) return [211, 48, 39, 180];      // Red - very low
-            if (value < 0.3) return [252, 141, 89, 180];     // Orange-red - low
-            if (value < 0.4) return [254, 224, 139, 180];    // Yellow - moderate-low
-            if (value < 0.5) return [217, 239, 139, 180];    // Yellow-green - moderate
-            if (value < 0.6) return [145, 207, 96, 180];     // Light green - moderate-high
-            if (value < 0.7) return [26, 152, 80, 180];      // Green - high
-            return [0, 104, 55, 200];                        // Dark green - very high
-        };
+        // Try to use GeoRasterLayer if available, otherwise use canvas fallback
+        if (typeof GeoRasterLayer !== 'undefined') {
+            console.log('Using GeoRasterLayer plugin');
 
-        // Add NDVI layer
-        const layer = new GeoRasterLayer({
-            georaster: georaster,
-            opacity: 0.7,
-            pixelValuesToColorFn: values => colorScale(values[0]),
-            resolution: 256
-        });
+            // Add NDVI layer
+            const layer = new GeoRasterLayer({
+                georaster: georaster,
+                opacity: 0.7,
+                pixelValuesToColorFn: values => getNDVIColor(values[0]),
+                resolution: 256
+            });
 
-        map.addLayer(layer, 'aoi-fill'); // Add below AOI
-        map.ndviLayer = layer;
+            map.addLayer(layer, 'aoi-fill'); // Add below AOI
+            map.ndviLayer = layer;
 
-        // Initially hide the layer
-        if (map.ndviLayer) {
-            map.ndviLayer.options.opacity = 0;
+            // Initially hide the layer
+            if (map.ndviLayer) {
+                map.ndviLayer.options.opacity = 0;
+            }
+        } else {
+            console.warn('⚠️ GeoRasterLayer not available, using canvas fallback');
+            await loadNDVIWithCanvas(georaster);
+            map.ndviLayerType = 'canvas';
         }
 
         hideLoading();
@@ -254,7 +320,14 @@ function toggleLayer(layerId, visible) {
             break;
 
         case 'ndvi':
-            if (map.ndviLayer) {
+            // Handle both GeoRasterLayer plugin and canvas-based rendering
+            if (map.ndviLayerType === 'canvas') {
+                // Canvas-based layer
+                if (map.getLayer('ndvi-layer')) {
+                    map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
+                }
+            } else if (map.ndviLayer) {
+                // GeoRasterLayer plugin
                 map.ndviLayer.options.opacity = visible ? 0.7 : 0;
             }
             document.getElementById('ndvi-legend').style.display = visible ? 'block' : 'none';
@@ -269,7 +342,8 @@ function changeBasemap(style) {
         return;
     }
 
-    const styleUrl = `${CONFIG.BASEMAPS[style]}?access_token=${CONFIG.MAPBOX_TOKEN}`;
+    // Don't add token here - transformRequest will handle it
+    const styleUrl = CONFIG.BASEMAPS[style];
 
     // Save current state
     const center = map.getCenter();
@@ -281,7 +355,7 @@ function changeBasemap(style) {
     // Restore layers after style loads
     map.once('style.load', () => {
         loadAOI();
-        if (layerState.ndvi) {
+        if (layerState.ndvi && map.ndviLayer) {
             loadNDVI();
         }
     });
@@ -294,11 +368,16 @@ map.on('load', () => {
     // Load initial layers
     loadAOI();
 
-    // Check if NDVI libraries are available
-    const ndviAvailable = typeof parseGeoraster !== 'undefined' && typeof GeoRasterLayer !== 'undefined';
+    // Check if NDVI is available (only need parseGeoraster, can use fallback renderer)
+    const ndviAvailable = typeof parseGeoraster !== 'undefined';
+    const hasGeoRasterLayer = typeof GeoRasterLayer !== 'undefined';
 
     if (ndviAvailable) {
-        console.log('✓ NDVI libraries loaded - NDVI layer available');
+        if (hasGeoRasterLayer) {
+            console.log('✓ NDVI libraries loaded - using GeoRasterLayer plugin');
+        } else {
+            console.log('✓ GeoRaster loaded - using canvas fallback renderer');
+        }
         // Enable the checkbox
         document.getElementById('layer-ndvi').disabled = false;
         const ndviItem = document.querySelector('label[for="layer-ndvi"]');
@@ -308,9 +387,7 @@ map.on('load', () => {
         document.getElementById('ndvi-status').textContent = '✓';
         document.getElementById('ndvi-info').textContent = 'June 2024 composite (example data)';
     } else {
-        console.warn('⚠️ NDVI libraries not loaded - NDVI layer disabled');
-        console.log('GeoRaster available:', typeof parseGeoraster !== 'undefined');
-        console.log('GeoRasterLayer available:', typeof GeoRasterLayer !== 'undefined');
+        console.error('❌ GeoRaster library not loaded - NDVI layer disabled');
         // Keep checkbox disabled
         document.getElementById('layer-ndvi').disabled = true;
         document.getElementById('ndvi-status').textContent = '✗';

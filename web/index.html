@@ -10,19 +10,26 @@
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
 
     <!-- GeoRaster Layer for GeoTIFF support -->
+    <!-- Try multiple CDN sources for reliability -->
     <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
-    <script src="https://unpkg.com/georaster-layer-for-maplibre@0.1.0/dist/georaster-layer-for-maplibre.min.js"></script>
+    <!-- Try jsdelivr CDN instead of unpkg for georaster-layer-for-maplibre -->
+    <script src="https://cdn.jsdelivr.net/npm/georaster-layer-for-maplibre@0.1.0/dist/georaster-layer-for-maplibre.min.js"
+            onerror="console.error('❌ Failed to load GeoRasterLayer from jsdelivr'); this.onerror=null; this.src='https://unpkg.com/georaster-layer-for-maplibre@latest/dist/georaster-layer-for-maplibre.min.js'"></script>
 
     <!-- Check if libraries loaded -->
     <script>
-        console.log('GeoRaster loaded:', typeof parseGeoraster !== 'undefined');
-        console.log('GeoRasterLayer loaded:', typeof GeoRasterLayer !== 'undefined');
-        if (typeof parseGeoraster === 'undefined') {
-            console.error('❌ parseGeoraster not found - NDVI will not work');
-        }
-        if (typeof GeoRasterLayer === 'undefined') {
-            console.error('❌ GeoRasterLayer not found - NDVI will not work');
-        }
+        // Delay check to ensure libraries have time to load
+        setTimeout(() => {
+            console.log('GeoRaster loaded:', typeof parseGeoraster !== 'undefined');
+            console.log('GeoRasterLayer loaded:', typeof GeoRasterLayer !== 'undefined');
+            if (typeof parseGeoraster === 'undefined') {
+                console.error('❌ parseGeoraster not found - NDVI will not work');
+            }
+            if (typeof GeoRasterLayer === 'undefined') {
+                console.error('❌ GeoRasterLayer not found - NDVI will not work');
+                console.log('Attempting to load from alternative source...');
+            }
+        }, 500);
     </script>
 
     <!-- Optional: Load custom config if exists -->
