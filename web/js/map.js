@@ -58,9 +58,11 @@ const FREE_OSM_STYLE = {
 // Initialize the map
 const map = new maplibregl.Map({
     container: 'map',
-    style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
-        ? `${CONFIG.BASEMAPS.streets}?access_token=${CONFIG.MAPBOX_TOKEN}`
-        : FREE_OSM_STYLE, // Free OpenStreetMap fallback
+    // Temporarily using OSM while debugging Mapbox
+    style: FREE_OSM_STYLE,
+    // style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
+    //     ? `${CONFIG.BASEMAPS.streets}?access_token=${CONFIG.MAPBOX_TOKEN}`
+    //     : FREE_OSM_STYLE, // Free OpenStreetMap fallback
     center: CONFIG.CENTER,
     zoom: CONFIG.ZOOM,
     transformRequest: (url, resourceType) => {
