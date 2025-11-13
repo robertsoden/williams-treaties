@@ -4,11 +4,12 @@
 const CONFIG = {
     // You'll need your own Mapbox access token
     // Get one free at https://account.mapbox.com/
-    MAPBOX_TOKEN: 'YOUR_MAPBOX_TOKEN_HERE',
+    // Or create web/js/config.js with your token (see config.example.js)
+    MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
 
     // Initial map view centered on Williams Treaty area
-    CENTER: [-79.05, 44.3],
-    ZOOM: 9,
+    CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || [-79.05, 44.3],
+    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 9,
 
     // Data endpoints (served by local server)
     DATA_URLS: {
@@ -31,12 +32,35 @@ if (CONFIG.MAPBOX_TOKEN === 'YOUR_MAPBOX_TOKEN_HERE') {
     console.log('To use Mapbox styles, get a free token at https://account.mapbox.com/');
 }
 
+// Free OpenStreetMap style (fallback when no Mapbox token)
+const FREE_OSM_STYLE = {
+    version: 8,
+    sources: {
+        osm: {
+            type: 'raster',
+            tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap Contributors',
+            maxzoom: 19
+        }
+    },
+    layers: [
+        {
+            id: 'osm',
+            type: 'raster',
+            source: 'osm',
+            minzoom: 0,
+            maxzoom: 22
+        }
+    ]
+};
+
 // Initialize the map
 const map = new maplibregl.Map({
     container: 'map',
     style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
         ? `${CONFIG.BASEMAPS.streets}?access_token=${CONFIG.MAPBOX_TOKEN}`
-        : 'https://demotiles.maplibre.org/style.json', // Free fallback style
+        : FREE_OSM_STYLE, // Free OpenStreetMap fallback
     center: CONFIG.CENTER,
     zoom: CONFIG.ZOOM,
     transformRequest: (url, resourceType) => {
@@ -55,6 +79,11 @@ map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
 // Add scale control
 map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+
+// Log map initialization
+console.log('Map object created');
+console.log('Map center:', CONFIG.CENTER);
+console.log('Map zoom:', CONFIG.ZOOM);
 
 // Layer state
 const layerState = {
@@ -279,14 +308,38 @@ document.getElementById('toggle-control')?.addEventListener('click', () => {
 
 // Handle map errors
 map.on('error', (e) => {
-    console.error('Map error:', e);
+    console.error('❌ Map error:', e);
+    console.error('Error details:', e.error);
 });
+
+// Log when map is loading
+console.log('🗺️  Williams Treaty Territories Map Application');
+console.log('📍 Center:', CONFIG.CENTER);
+console.log('🔍 Zoom:', CONFIG.ZOOM);
+console.log('🔑 Mapbox token configured:', CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE');
+
+// Add more event listeners for debugging
+map.on('style.load', () => {
+    console.log('✓ Map style loaded successfully');
+});
+
+map.on('data', (e) => {
+    if (e.isSourceLoaded) {
+        console.log('✓ Data source loaded:', e.sourceId);
+    }
+});
+
+map.on('sourcedata', (e) => {
+    if (e.isSourceLoaded) {
+        console.log('✓ Source data loaded:', e.sourceId);
+    }
+});
+
+map.on('render', () => {
+    console.log('🎨 Map rendering...');
+}, { once: true });
 
 // Log when map is ready
 map.on('idle', () => {
-    console.log('Map is idle and ready');
-});
-
-console.log('Williams Treaty Territories Map Application initialized');
-console.log('AOI Center:', CONFIG.CENTER);
-console.log('Initial Zoom:', CONFIG.ZOOM);
+    console.log('✓ Map is idle and ready');
+}, { once: true });

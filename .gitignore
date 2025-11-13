@@ -25,6 +25,9 @@ build/
 .env
 .venv
 
+# Web application config (contains API tokens)
+web/js/config.js
+
 # IDE
 .vscode/
 .idea/
