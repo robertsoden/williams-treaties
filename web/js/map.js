@@ -18,7 +18,9 @@ const CONFIG = {
         ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif',
         charities: '/data/processed/charities/environmental_organizations.geojson',
         communities: '/data/processed/communities/williams_treaty_communities.geojson',
-        elevation: '/data/processed/dem/elevation.tif'
+        elevation: '/data/processed/dem/elevation.tif',
+        firePerimeters: '/data/processed/fire/fire_perimeters_2010_2024.geojson',
+        fuelType: '/data/processed/fuel/fuel_types.tif'
     },
 
     // Basemap styles (use mapbox:// protocol for Mapbox GL JS)
@@ -87,9 +89,11 @@ console.log('Map zoom:', CONFIG.ZOOM);
 const layerState = {
     treaty: true,
     charities: false,
+    communities: false,
     ndvi: false,
     elevation: false,
     fire: false,
+    fuelType: false,
     flood: false
 };
 
@@ -598,6 +602,196 @@ async function loadElevation() {
     }
 }
 
+// Load fire perimeters (vector data)
+async function loadFirePerimeters() {
+    try {
+        showLoading();
+
+        const response = await fetch(CONFIG.DATA_URLS.firePerimeters);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('fire-perimeters', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add fill layer for fire perimeters
+        map.addLayer({
+            id: 'fire-fill',
+            type: 'fill',
+            source: 'fire-perimeters',
+            paint: {
+                'fill-color': '#d73027',
+                'fill-opacity': 0.4
+            }
+        }, 'treaty-fill');
+
+        // Add outline layer
+        map.addLayer({
+            id: 'fire-outline',
+            type: 'line',
+            source: 'fire-perimeters',
+            paint: {
+                'line-color': '#a50026',
+                'line-width': 1,
+                'line-opacity': 0.8
+            }
+        }, 'treaty-fill');
+
+        // Initially hide the layer
+        map.setLayoutProperty('fire-fill', 'visibility', 'none');
+        map.setLayoutProperty('fire-outline', 'visibility', 'none');
+
+        // Add click handler for popups
+        map.on('click', 'fire-fill', (e) => {
+            const properties = e.features[0].properties;
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(`
+                    <h4>Fire Perimeter</h4>
+                    <p><strong>Year:</strong> ${properties.year || properties.YEAR || 'Unknown'}</p>
+                    <p><strong>Area:</strong> ${properties.area ? (properties.area / 10000).toFixed(2) + ' ha' : 'N/A'}</p>
+                    ${properties.FIRE_ID ? `<p><strong>Fire ID:</strong> ${properties.FIRE_ID}</p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'fire-fill', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'fire-fill', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.fireLoaded = true;
+
+        hideLoading();
+        console.log(`✓ Loaded ${geojson.features.length} fire perimeters`);
+
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading fire perimeters:', error);
+        hideLoading();
+        alert('Could not load fire perimeter data. Error: ' + error.message);
+        return false;
+    }
+}
+
+// Create color scale for fuel types
+function getFuelTypeColor(value) {
+    // Canadian Forest Fire Behavior Prediction (FBP) System fuel types
+    // Simplified colormap for demonstration
+    if (value === 0 || value === 99) return [200, 200, 200, 100];  // Non-fuel / Water
+    if (value >= 1 && value <= 4) return [34, 139, 34, 180];       // Coniferous (C-1 to C-4) - Green
+    if (value >= 5 && value <= 7) return [0, 100, 0, 180];         // Coniferous (C-5 to C-7) - Dark green
+    if (value >= 11 && value <= 18) return [255, 215, 0, 180];     // Deciduous (D-1, D-2) - Gold
+    if (value >= 21 && value <= 25) return [173, 255, 47, 180];    // Mixed wood (M-1, M-2) - Yellow-green
+    if (value >= 31 && value <= 32) return [184, 134, 11, 180];    // Slash (S-1, S-2) - Dark gold
+    if (value >= 40 && value <= 43) return [255, 255, 153, 180];   // Grass (O-1a, O-1b) - Light yellow
+    return [139, 69, 19, 180];  // Other - Brown
+}
+
+// Canvas renderer for fuel type data
+async function loadFuelTypeWithCanvas(georaster) {
+    console.log('Using custom canvas renderer for fuel types');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = georaster.width;
+    canvas.height = georaster.height;
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+
+    // Render each pixel
+    for (let y = 0; y < georaster.height; y++) {
+        for (let x = 0; x < georaster.width; x++) {
+            const value = georaster.values[0][y][x];
+            const color = getFuelTypeColor(value);
+            const idx = (y * canvas.width + x) * 4;
+            imageData.data[idx] = color[0];     // R
+            imageData.data[idx + 1] = color[1]; // G
+            imageData.data[idx + 2] = color[2]; // B
+            imageData.data[idx + 3] = color[3]; // A
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Add as image source
+    const coordinates = [
+        [georaster.xmin, georaster.ymax], // top-left
+        [georaster.xmax, georaster.ymax], // top-right
+        [georaster.xmax, georaster.ymin], // bottom-right
+        [georaster.xmin, georaster.ymin]  // bottom-left
+    ];
+
+    map.addSource('fueltype-raster', {
+        type: 'image',
+        url: canvas.toDataURL(),
+        coordinates: coordinates
+    });
+
+    map.addLayer({
+        id: 'fueltype-layer',
+        type: 'raster',
+        source: 'fueltype-raster',
+        paint: {
+            'raster-opacity': 0.6
+        }
+    }, 'treaty-fill');
+
+    // Initially hide the layer
+    map.setLayoutProperty('fueltype-layer', 'visibility', 'none');
+
+    return true;
+}
+
+// Load fuel type raster
+async function loadFuelType() {
+    // Check if GeoRaster parser is available
+    if (typeof parseGeoraster === 'undefined') {
+        console.error('GeoRaster library not loaded');
+        hideLoading();
+        alert('Fuel type visualization requires GeoRaster library.');
+        return false;
+    }
+
+    try {
+        showLoading();
+
+        const response = await fetch(CONFIG.DATA_URLS.fuelType);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+
+        // Parse GeoTIFF
+        const georaster = await parseGeoraster(arrayBuffer);
+
+        // Use canvas-based rendering
+        await loadFuelTypeWithCanvas(georaster);
+        map.fuelTypeLayerType = 'canvas';
+        map.fuelTypeLoaded = true;
+
+        hideLoading();
+        console.log('✓ Fuel type raster loaded successfully');
+
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading fuel type:', error);
+        hideLoading();
+        alert('Could not load fuel type data. Error: ' + error.message);
+        return false;
+    }
+}
+
 // Toggle layer visibility
 function toggleLayer(layerId, visible) {
     layerState[layerId] = visible;
@@ -634,6 +828,27 @@ function toggleLayer(layerId, visible) {
                 map.setLayoutProperty('elevation-layer', 'visibility', visible ? 'visible' : 'none');
             }
             document.getElementById('elevation-legend').style.display = visible ? 'block' : 'none';
+            break;
+
+        case 'fire':
+            if (map.getLayer('fire-fill')) {
+                map.setLayoutProperty('fire-fill', 'visibility', visible ? 'visible' : 'none');
+                map.setLayoutProperty('fire-outline', 'visibility', visible ? 'visible' : 'none');
+            }
+            const fireLegend = document.getElementById('fire-legend');
+            if (fireLegend) {
+                fireLegend.style.display = visible ? 'block' : 'none';
+            }
+            break;
+
+        case 'fuelType':
+            if (map.getLayer('fueltype-layer')) {
+                map.setLayoutProperty('fueltype-layer', 'visibility', visible ? 'visible' : 'none');
+            }
+            const fuelLegend = document.getElementById('fuel-legend');
+            if (fuelLegend) {
+                fuelLegend.style.display = visible ? 'block' : 'none';
+            }
             break;
     }
 }
@@ -736,6 +951,40 @@ document.getElementById('layer-elevation').addEventListener('change', async (e) 
     }
 
     toggleLayer('elevation', checked);
+});
+
+document.getElementById('layer-fire').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    // If turning on and not loaded yet, load it first
+    if (checked && !map.fireLoaded) {
+        console.log('First time loading fire perimeters...');
+        const loaded = await loadFirePerimeters();
+        if (!loaded) {
+            // Loading failed, uncheck the box
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('fire', checked);
+});
+
+document.getElementById('layer-fuel').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    // If turning on and not loaded yet, load it first
+    if (checked && !map.fuelTypeLoaded) {
+        console.log('First time loading fuel types...');
+        const loaded = await loadFuelType();
+        if (!loaded) {
+            // Loading failed, uncheck the box
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('fuelType', checked);
 });
 
 // Basemap switcher

@@ -185,6 +185,26 @@ body {
     font-style: italic;
 }
 
+.legend-items {
+    margin-top: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #333;
+}
+
+.legend-color {
+    width: 24px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
 /* Control Footer */
 .control-footer {
     padding: 12px 20px;

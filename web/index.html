@@ -129,15 +129,29 @@
         </div>
 
         <div class="control-section">
-            <h3>Fire Hazard</h3>
+            <h3>Fire Data</h3>
             <div class="layer-group">
-                <label class="layer-item disabled">
-                    <input type="checkbox" id="layer-fire" disabled>
-                    <span>Fire Risk Zones</span>
-                    <span class="layer-status">⚠</span>
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-fire">
+                    <span>Fire Perimeters</span>
+                    <span class="layer-status" id="fire-status">✓</span>
                 </label>
                 <div class="layer-info">
-                    <small>Download required - see documentation</small>
+                    <small>Historical fire perimeters (2010-2024)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Fuel Types</h3>
+            <div class="layer-group">
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-fuel">
+                    <span>Wildland Fuel Classification</span>
+                    <span class="layer-status" id="fuel-status">✓</span>
+                </label>
+                <div class="layer-info">
+                    <small>Canadian FBP System fuel types</small>
                 </div>
             </div>
         </div>
@@ -182,6 +196,48 @@
                 </div>
             </div>
             <p class="legend-description">Terrain elevation above sea level</p>
+        </div>
+
+        <div class="control-section legend" id="fire-legend" style="display: none;">
+            <h3>Fire Perimeters Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(215, 48, 39, 0.4); border: 1px solid #a50026;"></span>
+                    <span>Historical fire boundaries (2010-2024)</span>
+                </div>
+            </div>
+            <p class="legend-description">Click on fire perimeters for details</p>
+        </div>
+
+        <div class="control-section legend" id="fuel-legend" style="display: none;">
+            <h3>Fuel Type Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(34, 139, 34, 0.7);"></span>
+                    <span>Coniferous (C-1 to C-4)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(0, 100, 0, 0.7);"></span>
+                    <span>Coniferous Dense (C-5 to C-7)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(255, 215, 0, 0.7);"></span>
+                    <span>Deciduous (D-1, D-2)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(173, 255, 47, 0.7);"></span>
+                    <span>Mixed Wood (M-1, M-2)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(184, 134, 11, 0.7);"></span>
+                    <span>Slash (S-1, S-2)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: rgba(255, 255, 153, 0.7);"></span>
+                    <span>Grass/Open (O-1a, O-1b)</span>
+                </div>
+            </div>
+            <p class="legend-description">Canadian FBP System fuel types</p>
         </div>
 
         <div class="control-footer">
