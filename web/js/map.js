@@ -65,16 +65,35 @@ const map = new maplibregl.Map({
     center: CONFIG.CENTER,
     zoom: CONFIG.ZOOM,
     transformRequest: (url, resourceType) => {
-        // Add Mapbox token to all Mapbox API requests if configured
-        if (CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE' && url.includes('mapbox.com')) {
+        // Skip if no Mapbox token configured
+        if (CONFIG.MAPBOX_TOKEN === 'YOUR_MAPBOX_TOKEN_HERE') {
+            return { url };
+        }
+
+        // Transform mapbox:// protocol URLs to HTTPS
+        if (url.startsWith('mapbox://')) {
+            // Handle different mapbox:// URL types
+            if (url.startsWith('mapbox://sprites/')) {
+                // mapbox://sprites/mapbox/streets-v12 -> https://api.mapbox.com/sprites/v1/mapbox/streets-v12
+                url = url.replace('mapbox://sprites/', 'https://api.mapbox.com/styles/v1/');
+            } else if (url.startsWith('mapbox://fonts/')) {
+                // mapbox://fonts/mapbox/{fontstack}/{range}.pbf
+                url = url.replace('mapbox://fonts/', 'https://api.mapbox.com/fonts/v1/');
+            } else if (url.startsWith('mapbox://')) {
+                // mapbox://mapbox.mapbox-streets-v8 -> https://api.mapbox.com/v4/mapbox.mapbox-streets-v8
+                url = url.replace('mapbox://', 'https://api.mapbox.com/v4/');
+            }
+        }
+
+        // Add access token to all Mapbox API requests
+        if (url.includes('api.mapbox.com')) {
             // Check if token is already in the URL to avoid duplicates
             if (!url.includes('access_token=')) {
                 const separator = url.includes('?') ? '&' : '?';
-                return {
-                    url: `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`
-                };
+                url = `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`;
             }
         }
+
         return { url };
     }
 });
