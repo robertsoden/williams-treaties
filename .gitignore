@@ -2,6 +2,13 @@
 data/raw/*
 data/processed/*
 data/boundaries/*
+
+# Allow specific essential data files
+!data/boundaries/williams_treaty.geojson
+!data/boundaries/williams_treaty_aoi.geojson
+!data/boundaries/williams_treaty_aoi_utm.geojson
+!data/processed/charities/
+!data/processed/charities/environmental_organizations.geojson
 !data/**/.gitkeep
 
 # Python
