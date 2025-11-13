@@ -8,9 +8,11 @@ This script orchestrates the entire data download and processing workflow:
 3. Process NDVI from satellite imagery
 4. Download fire hazard data
 5. Download flood hazard data
+6. Download fire perimeters, fuel types, and DEM
+7. Download Williams Treaty First Nations communities
 
 Usage:
-    python scripts/run_all.py [--skip-ndvi] [--skip-downloads]
+    python scripts/run_all.py [--skip-ndvi] [--skip-communities] [--skip-fire-fuel-dem]
 """
 
 import sys
@@ -98,6 +100,16 @@ def main():
         help='Skip flood data download'
     )
     parser.add_argument(
+        '--skip-fire-fuel-dem',
+        action='store_true',
+        help='Skip fire perimeters, fuel types, and DEM download'
+    )
+    parser.add_argument(
+        '--skip-communities',
+        action='store_true',
+        help='Skip Williams Treaty communities download'
+    )
+    parser.add_argument(
         '--ndvi-example',
         action='store_true',
         help='Create example NDVI data instead of downloading satellite imagery'
@@ -179,6 +191,32 @@ def main():
         if args.skip_flood:
             logger.info("Skipping flood data download")
         results['flood'] = None
+
+    # 6. Download fire perimeters, fuel types, and DEM
+    if not args.skip_fire_fuel_dem and results['aoi']:
+        print("\n" + "="*70)
+        print("STEP 6: DOWNLOAD FIRE PERIMETERS, FUEL TYPES, AND DEM")
+        print("="*70)
+        fire_fuel_dem_script = scripts_dir / "06_download_fire_fuel_dem.py"
+        # Use --skip-fires and --skip-fuel for faster setup, as they may require manual download
+        fire_fuel_dem_args = ['--skip-fires', '--skip-fuel']
+        results['fire_fuel_dem'] = run_script(fire_fuel_dem_script, args=fire_fuel_dem_args, logger=logger)
+    else:
+        if args.skip_fire_fuel_dem:
+            logger.info("Skipping fire perimeters, fuel types, and DEM download")
+        results['fire_fuel_dem'] = None
+
+    # 7. Download Williams Treaty communities
+    if not args.skip_communities and results['aoi']:
+        print("\n" + "="*70)
+        print("STEP 7: DOWNLOAD WILLIAMS TREATY FIRST NATIONS COMMUNITIES")
+        print("="*70)
+        communities_script = scripts_dir / "07_download_williams_treaty_communities.py"
+        results['communities'] = run_script(communities_script, logger=logger)
+    else:
+        if args.skip_communities:
+            logger.info("Skipping Williams Treaty communities download")
+        results['communities'] = None
 
     # Print summary
     print("\n" + "="*70)
