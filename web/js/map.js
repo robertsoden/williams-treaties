@@ -16,7 +16,8 @@ const CONFIG = {
         aoi: '/data/boundaries/williams_treaty_aoi.geojson',
         treatyBoundary: '/data/boundaries/williams_treaty.geojson',
         ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif',
-        charities: '/data/processed/charities/environmental_organizations.geojson'
+        charities: '/data/processed/charities/environmental_organizations.geojson',
+        elevation: '/data/processed/dem/elevation.tif'
     },
 
     // Basemap styles (use mapbox:// protocol for Mapbox GL JS)
@@ -86,6 +87,7 @@ const layerState = {
     treaty: true,
     charities: false,
     ndvi: false,
+    elevation: false,
     fire: false,
     flood: false
 };
@@ -425,6 +427,114 @@ async function loadNDVI() {
     }
 }
 
+// Create color scale for elevation (250-400m synthetic range)
+function getElevationColor(value) {
+    // Elevation colormap: blue (low) -> green -> yellow -> brown -> white (high)
+    if (value < 270) return [69, 117, 180, 180];      // Dark blue - lowest
+    if (value < 290) return [116, 173, 209, 180];     // Light blue
+    if (value < 310) return [171, 217, 233, 180];     // Pale blue
+    if (value < 330) return [224, 243, 248, 180];     // Very pale blue
+    if (value < 350) return [255, 255, 191, 180];     // Yellow
+    if (value < 370) return [254, 224, 144, 180];     // Orange-yellow
+    if (value < 390) return [253, 174, 97, 180];      // Orange
+    return [215, 48, 39, 200];                         // Red-brown - highest
+}
+
+// Canvas renderer for elevation data
+async function loadElevationWithCanvas(georaster) {
+    console.log('Using custom canvas renderer for elevation');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = georaster.width;
+    canvas.height = georaster.height;
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+
+    // Render each pixel
+    for (let y = 0; y < georaster.height; y++) {
+        for (let x = 0; x < georaster.width; x++) {
+            const value = georaster.values[0][y][x];
+            const color = getElevationColor(value);
+            const idx = (y * canvas.width + x) * 4;
+            imageData.data[idx] = color[0];     // R
+            imageData.data[idx + 1] = color[1]; // G
+            imageData.data[idx + 2] = color[2]; // B
+            imageData.data[idx + 3] = color[3]; // A
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Add as image source
+    const coordinates = [
+        [georaster.xmin, georaster.ymax], // top-left
+        [georaster.xmax, georaster.ymax], // top-right
+        [georaster.xmax, georaster.ymin], // bottom-right
+        [georaster.xmin, georaster.ymin]  // bottom-left
+    ];
+
+    map.addSource('elevation-raster', {
+        type: 'image',
+        url: canvas.toDataURL(),
+        coordinates: coordinates
+    });
+
+    map.addLayer({
+        id: 'elevation-layer',
+        type: 'raster',
+        source: 'elevation-raster',
+        paint: {
+            'raster-opacity': 0.6
+        }
+    }, 'treaty-fill');
+
+    // Initially hide the layer
+    map.setLayoutProperty('elevation-layer', 'visibility', 'none');
+
+    return true;
+}
+
+// Load elevation raster
+async function loadElevation() {
+    // Check if GeoRaster parser is available
+    if (typeof parseGeoraster === 'undefined') {
+        console.error('GeoRaster library not loaded');
+        hideLoading();
+        alert('Elevation visualization requires GeoRaster library.');
+        return false;
+    }
+
+    try {
+        showLoading();
+
+        const response = await fetch(CONFIG.DATA_URLS.elevation);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+
+        // Parse GeoTIFF
+        const georaster = await parseGeoraster(arrayBuffer);
+
+        // Use canvas-based rendering
+        await loadElevationWithCanvas(georaster);
+        map.elevationLayerType = 'canvas';
+        map.elevationLoaded = true;
+
+        hideLoading();
+        console.log('✓ Elevation raster loaded successfully');
+
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading elevation:', error);
+        hideLoading();
+        alert('Could not load elevation data. Error: ' + error.message);
+        return false;
+    }
+}
+
 // Toggle layer visibility
 function toggleLayer(layerId, visible) {
     layerState[layerId] = visible;
@@ -447,6 +557,14 @@ function toggleLayer(layerId, visible) {
                 map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
             }
             document.getElementById('ndvi-legend').style.display = visible ? 'block' : 'none';
+            break;
+
+        case 'elevation':
+            // Canvas-based rendering
+            if (map.getLayer('elevation-layer')) {
+                map.setLayoutProperty('elevation-layer', 'visibility', visible ? 'visible' : 'none');
+            }
+            document.getElementById('elevation-legend').style.display = visible ? 'block' : 'none';
             break;
     }
 }
@@ -527,6 +645,23 @@ document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
     }
 
     toggleLayer('ndvi', checked);
+});
+
+document.getElementById('layer-elevation').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    // If turning on and not loaded yet, load it first
+    if (checked && !map.elevationLoaded) {
+        console.log('First time loading elevation...');
+        const loaded = await loadElevation();
+        if (!loaded) {
+            // Loading failed, uncheck the box
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('elevation', checked);
 });
 
 // Basemap switcher

@@ -101,6 +101,20 @@
         </div>
 
         <div class="control-section">
+            <h3>Topography</h3>
+            <div class="layer-group">
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-elevation">
+                    <span>Elevation (DEM)</span>
+                    <span class="layer-status" id="elevation-status">✓</span>
+                </label>
+                <div class="layer-info">
+                    <small>Synthetic elevation data (250-400m)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section">
             <h3>Fire Hazard</h3>
             <div class="layer-group">
                 <label class="layer-item disabled">
@@ -140,6 +154,20 @@
                 </div>
             </div>
             <p class="legend-description">Vegetation health indicator</p>
+        </div>
+
+        <div class="control-section legend" id="elevation-legend" style="display: none;">
+            <h3>Elevation Legend</h3>
+            <div class="legend-gradient">
+                <div class="legend-bar" style="background: linear-gradient(to right, #4575b4, #74add1, #abd9e9, #e0f3f8, #ffffbf, #fee090, #fdae61, #d73027);"></div>
+                <div class="legend-labels">
+                    <span>250m<br><small>Low</small></span>
+                    <span>300m</span>
+                    <span>350m</span>
+                    <span>400m<br><small>High</small></span>
+                </div>
+            </div>
+            <p class="legend-description">Terrain elevation above sea level</p>
         </div>
 
         <div class="control-footer">
