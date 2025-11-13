@@ -14,15 +14,17 @@ const CONFIG = {
     // Data endpoints (served by local server)
     DATA_URLS: {
         aoi: '/data/boundaries/williams_treaty_aoi.geojson',
-        ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif'
+        treatyBoundary: '/data/boundaries/williams_treaty.geojson',
+        ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif',
+        charities: '/data/processed/charities/environmental_organizations.geojson'
     },
 
-    // Basemap styles (MapLibre requires full HTTPS URLs, not mapbox:// protocol)
+    // Basemap styles (use mapbox:// protocol for Mapbox GL JS)
     BASEMAPS: {
-        streets: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12',
-        satellite: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12',
-        outdoors: 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12',
-        dark: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11'
+        streets: 'mapbox://styles/mapbox/streets-v12',
+        satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+        outdoors: 'mapbox://styles/mapbox/outdoors-v12',
+        dark: 'mapbox://styles/mapbox/dark-v11'
     }
 };
 
@@ -55,54 +57,24 @@ const FREE_OSM_STYLE = {
     ]
 };
 
+// Set Mapbox access token
+mapboxgl.accessToken = CONFIG.MAPBOX_TOKEN;
+
 // Initialize the map
-const map = new maplibregl.Map({
+const map = new mapboxgl.Map({
     container: 'map',
-    // Use Mapbox if token configured, otherwise fallback to OSM
     style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
-        ? CONFIG.BASEMAPS.streets  // Don't add token here - transformRequest will handle it
+        ? 'mapbox://styles/mapbox/streets-v12'  // Use mapbox:// protocol - Mapbox GL JS handles it
         : FREE_OSM_STYLE,
     center: CONFIG.CENTER,
-    zoom: CONFIG.ZOOM,
-    transformRequest: (url, resourceType) => {
-        // Skip if no Mapbox token configured
-        if (CONFIG.MAPBOX_TOKEN === 'YOUR_MAPBOX_TOKEN_HERE') {
-            return { url };
-        }
-
-        // Transform mapbox:// protocol URLs to HTTPS
-        if (url.startsWith('mapbox://')) {
-            // Handle different mapbox:// URL types
-            if (url.startsWith('mapbox://sprites/')) {
-                // mapbox://sprites/mapbox/streets-v12 -> https://api.mapbox.com/sprites/v1/mapbox/streets-v12
-                url = url.replace('mapbox://sprites/', 'https://api.mapbox.com/styles/v1/');
-            } else if (url.startsWith('mapbox://fonts/')) {
-                // mapbox://fonts/mapbox/{fontstack}/{range}.pbf
-                url = url.replace('mapbox://fonts/', 'https://api.mapbox.com/fonts/v1/');
-            } else if (url.startsWith('mapbox://')) {
-                // mapbox://mapbox.mapbox-streets-v8 -> https://api.mapbox.com/v4/mapbox.mapbox-streets-v8
-                url = url.replace('mapbox://', 'https://api.mapbox.com/v4/');
-            }
-        }
-
-        // Add access token to all Mapbox API requests
-        if (url.includes('api.mapbox.com')) {
-            // Check if token is already in the URL to avoid duplicates
-            if (!url.includes('access_token=')) {
-                const separator = url.includes('?') ? '&' : '?';
-                url = `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`;
-            }
-        }
-
-        return { url };
-    }
+    zoom: CONFIG.ZOOM
 });
 
 // Add navigation controls
-map.addControl(new maplibregl.NavigationControl(), 'top-left');
+map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
 // Add scale control
-map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
 // Log map initialization
 console.log('Map object created');
@@ -111,7 +83,8 @@ console.log('Map zoom:', CONFIG.ZOOM);
 
 // Layer state
 const layerState = {
-    aoi: true,
+    treaty: true,
+    charities: false,
     ndvi: false,
     fire: false,
     flood: false
@@ -162,7 +135,7 @@ async function loadAOI() {
         });
 
         // Fit map to AOI bounds
-        const bounds = new maplibregl.LngLatBounds();
+        const bounds = new mapboxgl.LngLatBounds();
         geojson.features.forEach(feature => {
             if (feature.geometry.type === 'Polygon') {
                 feature.geometry.coordinates[0].forEach(coord => {
@@ -175,7 +148,7 @@ async function loadAOI() {
         // Add click handler for popup
         map.on('click', 'aoi-fill', (e) => {
             const properties = e.features[0].properties;
-            new maplibregl.Popup()
+            new mapboxgl.Popup()
                 .setLngLat(e.lngLat)
                 .setHTML(`
                     <h4>${properties.name || 'Williams Treaty Territories'}</h4>
@@ -195,6 +168,148 @@ async function loadAOI() {
         console.log('✓ AOI boundary loaded');
     } catch (error) {
         console.error('Error loading AOI:', error);
+    }
+}
+
+// Load Williams Treaty boundary
+async function loadTreatyBoundary() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.treatyBoundary);
+        const geojson = await response.json();
+
+        map.addSource('treaty-boundary', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add fill layer for treaty boundary
+        map.addLayer({
+            id: 'treaty-fill',
+            type: 'fill',
+            source: 'treaty-boundary',
+            paint: {
+                'fill-color': '#2c5f2d',
+                'fill-opacity': 0.1
+            }
+        });
+
+        // Add outline layer
+        map.addLayer({
+            id: 'treaty-outline',
+            type: 'line',
+            source: 'treaty-boundary',
+            paint: {
+                'line-color': '#2c5f2d',
+                'line-width': 3,
+                'line-opacity': 0.8
+            }
+        });
+
+        // Fit map to treaty bounds
+        const bounds = new mapboxgl.LngLatBounds();
+        geojson.features.forEach(feature => {
+            if (feature.geometry.type === 'MultiPolygon') {
+                feature.geometry.coordinates.forEach(polygon => {
+                    polygon[0].forEach(coord => {
+                        bounds.extend(coord);
+                    });
+                });
+            } else if (feature.geometry.type === 'Polygon') {
+                feature.geometry.coordinates[0].forEach(coord => {
+                    bounds.extend(coord);
+                });
+            }
+        });
+        map.fitBounds(bounds, { padding: 50 });
+
+        // Add click handler
+        map.on('click', 'treaty-fill', (e) => {
+            const properties = e.features[0].properties;
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(`
+                    <h4>${properties.ENAME || 'Williams Treaty Territories'}</h4>
+                    <p><strong>Treaty Date:</strong> ${properties.DATE_YEAR || '1923'}</p>
+                    <p><strong>Category:</strong> ${properties.Category || 'Treaty Land'}</p>
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'treaty-fill', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'treaty-fill', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        console.log('✓ Treaty boundary loaded');
+    } catch (error) {
+        console.error('Error loading treaty boundary:', error);
+    }
+}
+
+// Load environmental charities
+async function loadCharities() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.charities);
+        const geojson = await response.json();
+
+        map.addSource('charities', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add circle markers for charities
+        map.addLayer({
+            id: 'charities-circles',
+            type: 'circle',
+            source: 'charities',
+            paint: {
+                'circle-radius': 6,
+                'circle-color': '#3887be',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.8
+            }
+        });
+
+        // Initially hide the layer
+        map.setLayoutProperty('charities-circles', 'visibility', 'none');
+
+        // Add click handler for popups
+        map.on('click', 'charities-circles', (e) => {
+            const properties = e.features[0].properties;
+            const coordinates = e.features[0].geometry.coordinates.slice();
+
+            // Format revenue
+            const revenue = properties.revenue ?
+                `$${parseInt(properties.revenue).toLocaleString()}` : 'N/A';
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <h4>${properties.name}</h4>
+                    <p><strong>Location:</strong> ${properties.city}, ${properties.province}</p>
+                    <p><strong>Category:</strong> ${properties.category}</p>
+                    <p><strong>Revenue:</strong> ${revenue}</p>
+                    ${properties.programs ? `<p><strong>Programs:</strong> ${properties.programs}...</p>` : ''}
+                    ${properties.website ? `<p><a href="${properties.website}" target="_blank">Website</a></p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'charities-circles', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'charities-circles', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        console.log(`✓ Loaded ${geojson.features.length} environmental organizations`);
+    } catch (error) {
+        console.error('Error loading charities:', error);
     }
 }
 
@@ -241,15 +356,17 @@ async function loadNDVIWithCanvas(georaster) {
     ];
 
     // Add as image source
+    const coordinates = [
+        [georaster.xmin, georaster.ymax], // top-left
+        [georaster.xmax, georaster.ymax], // top-right
+        [georaster.xmax, georaster.ymin], // bottom-right
+        [georaster.xmin, georaster.ymin]  // bottom-left
+    ];
+
     map.addSource('ndvi-raster', {
         type: 'image',
         url: canvas.toDataURL(),
-        coordinates: [
-            [georaster.xmin, georaster.ymax], // top-left
-            [georaster.xmax, georaster.ymax], // top-right
-            [georaster.xmax, georaster.ymin], // bottom-right
-            [georaster.xmin, georaster.ymin]  // bottom-left
-        ]
+        coordinates: coordinates
     });
 
     map.addLayer({
@@ -259,7 +376,10 @@ async function loadNDVIWithCanvas(georaster) {
         paint: {
             'raster-opacity': 0.7
         }
-    }, 'aoi-fill');
+    }, 'treaty-fill');
+
+    // Initially hide the layer (it starts unchecked)
+    map.setLayoutProperty('ndvi-layer', 'visibility', 'none');
 
     return true;
 }
@@ -276,7 +396,6 @@ async function loadNDVI() {
 
     try {
         showLoading();
-        console.log('Loading NDVI data...');
 
         const response = await fetch(CONFIG.DATA_URLS.ndvi);
         if (!response.ok) {
@@ -284,36 +403,14 @@ async function loadNDVI() {
         }
 
         const arrayBuffer = await response.arrayBuffer();
-        console.log('NDVI file loaded, parsing GeoTIFF...');
 
         // Parse GeoTIFF
         const georaster = await parseGeoraster(arrayBuffer);
-        console.log('GeoTIFF parsed successfully');
 
-        // Try to use GeoRasterLayer if available, otherwise use canvas fallback
-        if (typeof GeoRasterLayer !== 'undefined') {
-            console.log('Using GeoRasterLayer plugin');
-
-            // Add NDVI layer
-            const layer = new GeoRasterLayer({
-                georaster: georaster,
-                opacity: 0.7,
-                pixelValuesToColorFn: values => getNDVIColor(values[0]),
-                resolution: 256
-            });
-
-            map.addLayer(layer, 'aoi-fill'); // Add below AOI
-            map.ndviLayer = layer;
-
-            // Initially hide the layer
-            if (map.ndviLayer) {
-                map.ndviLayer.options.opacity = 0;
-            }
-        } else {
-            console.warn('⚠️ GeoRasterLayer not available, using canvas fallback');
-            await loadNDVIWithCanvas(georaster);
-            map.ndviLayerType = 'canvas';
-        }
+        // Use canvas-based rendering (compatible with Mapbox GL JS)
+        await loadNDVIWithCanvas(georaster);
+        map.ndviLayerType = 'canvas';
+        map.ndviLoaded = true; // Mark as loaded for reload detection
 
         hideLoading();
         console.log('✓ NDVI raster loaded successfully');
@@ -333,21 +430,21 @@ function toggleLayer(layerId, visible) {
     layerState[layerId] = visible;
 
     switch(layerId) {
-        case 'aoi':
-            map.setLayoutProperty('aoi-fill', 'visibility', visible ? 'visible' : 'none');
-            map.setLayoutProperty('aoi-outline', 'visibility', visible ? 'visible' : 'none');
+        case 'treaty':
+            map.setLayoutProperty('treaty-fill', 'visibility', visible ? 'visible' : 'none');
+            map.setLayoutProperty('treaty-outline', 'visibility', visible ? 'visible' : 'none');
+            break;
+
+        case 'charities':
+            if (map.getLayer('charities-circles')) {
+                map.setLayoutProperty('charities-circles', 'visibility', visible ? 'visible' : 'none');
+            }
             break;
 
         case 'ndvi':
-            // Handle both GeoRasterLayer plugin and canvas-based rendering
-            if (map.ndviLayerType === 'canvas') {
-                // Canvas-based layer
-                if (map.getLayer('ndvi-layer')) {
-                    map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
-                }
-            } else if (map.ndviLayer) {
-                // GeoRasterLayer plugin
-                map.ndviLayer.options.opacity = visible ? 0.7 : 0;
+            // Canvas-based rendering (only option with Mapbox GL JS)
+            if (map.getLayer('ndvi-layer')) {
+                map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
             }
             document.getElementById('ndvi-legend').style.display = visible ? 'block' : 'none';
             break;
@@ -361,20 +458,15 @@ function changeBasemap(style) {
         return;
     }
 
-    // Don't add token here - transformRequest will handle it
     const styleUrl = CONFIG.BASEMAPS[style];
 
-    // Save current state
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-
-    // Change style
+    // Change style (Mapbox GL JS handles authentication automatically)
     map.setStyle(styleUrl);
 
     // Restore layers after style loads
     map.once('style.load', () => {
-        loadAOI();
-        if (layerState.ndvi && map.ndviLayer) {
+        loadTreatyBoundary();
+        if (layerState.ndvi && map.ndviLoaded) {
             loadNDVI();
         }
     });
@@ -385,18 +477,15 @@ map.on('load', () => {
     console.log('✓ Map loaded and ready');
 
     // Load initial layers
-    loadAOI();
+    // loadAOI(); // Replaced with actual treaty boundaries
+    loadTreatyBoundary();
+    loadCharities();
 
-    // Check if NDVI is available (only need parseGeoraster, can use fallback renderer)
+    // Check if NDVI is available (only need parseGeoraster for canvas rendering)
     const ndviAvailable = typeof parseGeoraster !== 'undefined';
-    const hasGeoRasterLayer = typeof GeoRasterLayer !== 'undefined';
 
     if (ndviAvailable) {
-        if (hasGeoRasterLayer) {
-            console.log('✓ NDVI libraries loaded - using GeoRasterLayer plugin');
-        } else {
-            console.log('✓ GeoRaster loaded - using canvas fallback renderer');
-        }
+        console.log('✓ GeoRaster loaded - using canvas renderer for NDVI');
         // Enable the checkbox
         document.getElementById('layer-ndvi').disabled = false;
         const ndviItem = document.querySelector('label[for="layer-ndvi"]');
@@ -415,15 +504,19 @@ map.on('load', () => {
 });
 
 // Layer control event listeners
-document.getElementById('layer-aoi').addEventListener('change', (e) => {
-    toggleLayer('aoi', e.target.checked);
+document.getElementById('layer-treaty').addEventListener('change', (e) => {
+    toggleLayer('treaty', e.target.checked);
+});
+
+document.getElementById('layer-charities').addEventListener('change', (e) => {
+    toggleLayer('charities', e.target.checked);
 });
 
 document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
     const checked = e.target.checked;
 
     // If turning on and not loaded yet, load it first
-    if (checked && !map.ndviLayer) {
+    if (checked && !map.ndviLoaded) {
         console.log('First time loading NDVI...');
         const loaded = await loadNDVI();
         if (!loaded) {

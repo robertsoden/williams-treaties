@@ -151,6 +151,8 @@ def load_aoi(config: Optional[Dict] = None) -> gpd.GeoDataFrame:
     """
     Load Area of Interest (AOI) boundary.
 
+    Now uses the actual Williams Treaty boundaries instead of the bounding box.
+
     Args:
         config: Configuration dictionary. If None, will load from config.yaml
 
@@ -161,13 +163,17 @@ def load_aoi(config: Optional[Dict] = None) -> gpd.GeoDataFrame:
         config = load_config()
 
     project_root = get_project_root()
-    aoi_path = project_root / config['directories']['boundaries'] / 'williams_treaty_aoi.geojson'
+    # Use actual treaty boundaries instead of bounding box
+    aoi_path = project_root / config['directories']['boundaries'] / 'williams_treaty.geojson'
 
+    # Fallback to old bounding box if treaty boundaries don't exist
     if not aoi_path.exists():
-        raise FileNotFoundError(
-            f"AOI file not found at {aoi_path}. "
-            "Please run 'python scripts/01_download_aoi.py' first."
-        )
+        aoi_path = project_root / config['directories']['boundaries'] / 'williams_treaty_aoi.geojson'
+        if not aoi_path.exists():
+            raise FileNotFoundError(
+                f"AOI file not found. "
+                "Please ensure williams_treaty.geojson exists in data/boundaries/"
+            )
 
     aoi = gpd.read_file(aoi_path)
     return aoi

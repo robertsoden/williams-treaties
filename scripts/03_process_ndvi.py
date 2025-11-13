@@ -227,9 +227,9 @@ def create_example_ndvi_data(aoi: gpd.GeoDataFrame, output_path: Path, logger):
     """
     logger.info("Creating example NDVI data (synthetic)")
 
-    # Get AOI bounds in UTM
-    aoi_utm = aoi.to_crs("EPSG:26917")  # UTM Zone 17N
-    bounds = aoi_utm.total_bounds  # minx, miny, maxx, maxy
+    # Get AOI bounds in WGS84 (geographic coordinates for web mapping)
+    aoi_wgs84 = aoi.to_crs("EPSG:4326")  # WGS84 lat/lon
+    bounds = aoi_wgs84.total_bounds  # minx, miny, maxx, maxy
 
     # Create a grid
     width = 1000  # pixels
@@ -242,7 +242,7 @@ def create_example_ndvi_data(aoi: gpd.GeoDataFrame, output_path: Path, logger):
     # Create transform
     transform = from_bounds(bounds[0], bounds[1], bounds[2], bounds[3], width, height)
 
-    # Save as GeoTIFF
+    # Save as GeoTIFF in WGS84
     ensure_dir(output_path.parent)
     with rasterio.open(
         output_path,
@@ -252,7 +252,7 @@ def create_example_ndvi_data(aoi: gpd.GeoDataFrame, output_path: Path, logger):
         width=width,
         count=1,
         dtype=ndvi_data.dtype,
-        crs=CRS.from_epsg(26917),
+        crs=CRS.from_epsg(4326),  # WGS84 for web mapping
         transform=transform,
         compress='lzw'
     ) as dst:
