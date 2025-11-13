@@ -176,14 +176,29 @@ async function loadAOI() {
 
 // Load NDVI raster
 async function loadNDVI() {
+    // Check if GeoRaster libraries are available
+    if (typeof parseGeoraster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
+        console.error('GeoRaster libraries not loaded');
+        hideLoading();
+        alert('NDVI visualization requires GeoRaster library. Please check console for errors.');
+        return false;
+    }
+
     try {
         showLoading();
+        console.log('Loading NDVI data...');
 
         const response = await fetch(CONFIG.DATA_URLS.ndvi);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const arrayBuffer = await response.arrayBuffer();
+        console.log('NDVI file loaded, parsing GeoTIFF...');
 
         // Parse GeoTIFF
         const georaster = await parseGeoraster(arrayBuffer);
+        console.log('GeoTIFF parsed successfully');
 
         // Create color scale for NDVI (0.2 to 0.8)
         const colorScale = (value) => {
@@ -213,19 +228,15 @@ async function loadNDVI() {
         }
 
         hideLoading();
-        console.log('✓ NDVI raster loaded');
+        console.log('✓ NDVI raster loaded successfully');
 
-        // Enable the NDVI checkbox
-        document.getElementById('layer-ndvi').disabled = false;
-        const ndviItem = document.querySelector('label[for="layer-ndvi"]');
-        if (ndviItem) {
-            ndviItem.classList.remove('disabled');
-        }
+        return true;
 
     } catch (error) {
-        console.error('Error loading NDVI:', error);
+        console.error('❌ Error loading NDVI:', error);
         hideLoading();
-        alert('Could not load NDVI data. Make sure the server is running and the file exists.');
+        alert('Could not load NDVI data. Error: ' + error.message);
+        return false;
     }
 }
 
@@ -275,13 +286,18 @@ function changeBasemap(style) {
 
 // Initialize map
 map.on('load', () => {
-    console.log('Map loaded');
+    console.log('✓ Map loaded and ready');
 
     // Load initial layers
     loadAOI();
 
-    // Pre-load NDVI but keep it hidden
-    loadNDVI();
+    // NDVI will be loaded on-demand when user toggles it
+    // Enable the checkbox now
+    document.getElementById('layer-ndvi').disabled = false;
+    const ndviItem = document.querySelector('label[for="layer-ndvi"]');
+    if (ndviItem) {
+        ndviItem.classList.remove('disabled');
+    }
 });
 
 // Layer control event listeners
@@ -289,8 +305,21 @@ document.getElementById('layer-aoi').addEventListener('change', (e) => {
     toggleLayer('aoi', e.target.checked);
 });
 
-document.getElementById('layer-ndvi').addEventListener('change', (e) => {
-    toggleLayer('ndvi', e.target.checked);
+document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    // If turning on and not loaded yet, load it first
+    if (checked && !map.ndviLayer) {
+        console.log('First time loading NDVI...');
+        const loaded = await loadNDVI();
+        if (!loaded) {
+            // Loading failed, uncheck the box
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('ndvi', checked);
 });
 
 // Basemap switcher
