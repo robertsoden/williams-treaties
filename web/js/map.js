@@ -17,12 +17,12 @@ const CONFIG = {
         ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif'
     },
 
-    // Basemap styles
+    // Basemap styles (MapLibre requires full HTTPS URLs, not mapbox:// protocol)
     BASEMAPS: {
-        streets: 'mapbox://styles/mapbox/streets-v12',
-        satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
-        outdoors: 'mapbox://styles/mapbox/outdoors-v12',
-        dark: 'mapbox://styles/mapbox/dark-v11'
+        streets: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12',
+        satellite: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12',
+        outdoors: 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12',
+        dark: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11'
     }
 };
 
@@ -64,10 +64,11 @@ const map = new maplibregl.Map({
     center: CONFIG.CENTER,
     zoom: CONFIG.ZOOM,
     transformRequest: (url, resourceType) => {
-        // Add Mapbox token to requests if configured
+        // Add Mapbox token to tile and other requests if configured
         if (CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE' && url.includes('mapbox.com')) {
+            const separator = url.includes('?') ? '&' : '?';
             return {
-                url: url.includes('?') ? `${url}&access_token=${CONFIG.MAPBOX_TOKEN}` : `${url}?access_token=${CONFIG.MAPBOX_TOKEN}`
+                url: `${url}${separator}access_token=${CONFIG.MAPBOX_TOKEN}`
             };
         }
         return { url };
