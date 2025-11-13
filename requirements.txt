@@ -1,0 +1,33 @@
+# Core geospatial libraries
+geopandas>=0.14.0
+rasterio>=1.3.0
+shapely>=2.0.0
+fiona>=1.9.0
+pyproj>=3.6.0
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+xarray>=2023.1.0
+rioxarray>=0.15.0
+
+# HTTP and data download
+requests>=2.31.0
+urllib3>=2.0.0
+aiohttp>=3.9.0
+
+# Satellite imagery processing
+earthengine-api>=0.1.380
+geemap>=0.30.0
+planetary-computer>=1.0.0
+pystac-client>=0.7.0
+
+# Additional utilities
+tqdm>=4.66.0  # Progress bars
+click>=8.1.0  # CLI interface
+python-dotenv>=1.0.0  # Environment variables
+pyyaml>=6.0.0  # Configuration files
+
+# Optional: for advanced analysis
+scipy>=1.11.0
+scikit-image>=0.22.0
