@@ -291,12 +291,27 @@ map.on('load', () => {
     // Load initial layers
     loadAOI();
 
-    // NDVI will be loaded on-demand when user toggles it
-    // Enable the checkbox now
-    document.getElementById('layer-ndvi').disabled = false;
-    const ndviItem = document.querySelector('label[for="layer-ndvi"]');
-    if (ndviItem) {
-        ndviItem.classList.remove('disabled');
+    // Check if NDVI libraries are available
+    const ndviAvailable = typeof parseGeoraster !== 'undefined' && typeof GeoRasterLayer !== 'undefined';
+
+    if (ndviAvailable) {
+        console.log('✓ NDVI libraries loaded - NDVI layer available');
+        // Enable the checkbox
+        document.getElementById('layer-ndvi').disabled = false;
+        const ndviItem = document.querySelector('label[for="layer-ndvi"]');
+        if (ndviItem) {
+            ndviItem.classList.remove('disabled');
+        }
+        document.getElementById('ndvi-status').textContent = '✓';
+        document.getElementById('ndvi-info').textContent = 'June 2024 composite (example data)';
+    } else {
+        console.warn('⚠️ NDVI libraries not loaded - NDVI layer disabled');
+        console.log('GeoRaster available:', typeof parseGeoraster !== 'undefined');
+        console.log('GeoRasterLayer available:', typeof GeoRasterLayer !== 'undefined');
+        // Keep checkbox disabled
+        document.getElementById('layer-ndvi').disabled = true;
+        document.getElementById('ndvi-status').textContent = '✗';
+        document.getElementById('ndvi-info').innerHTML = '<strong>GeoRaster library not loaded</strong><br>NDVI visualization unavailable';
     }
 });
 

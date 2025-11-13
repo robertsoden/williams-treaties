@@ -13,6 +13,18 @@
     <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
     <script src="https://unpkg.com/georaster-layer-for-maplibre@0.1.0/dist/georaster-layer-for-maplibre.min.js"></script>
 
+    <!-- Check if libraries loaded -->
+    <script>
+        console.log('GeoRaster loaded:', typeof parseGeoraster !== 'undefined');
+        console.log('GeoRasterLayer loaded:', typeof GeoRasterLayer !== 'undefined');
+        if (typeof parseGeoraster === 'undefined') {
+            console.error('❌ parseGeoraster not found - NDVI will not work');
+        }
+        if (typeof GeoRasterLayer === 'undefined') {
+            console.error('❌ GeoRasterLayer not found - NDVI will not work');
+        }
+    </script>
+
     <!-- Optional: Load custom config if exists -->
     <script src="js/config.js"></script>
 
@@ -67,10 +79,10 @@
                 <label class="layer-item">
                     <input type="checkbox" id="layer-ndvi">
                     <span>NDVI (Vegetation Index)</span>
-                    <span class="layer-status"></span>
+                    <span class="layer-status" id="ndvi-status">⚙</span>
                 </label>
                 <div class="layer-info">
-                    <small>June 2024 composite (example data)</small>
+                    <small id="ndvi-info">June 2024 composite - Check console if not working</small>
                 </div>
             </div>
         </div>
