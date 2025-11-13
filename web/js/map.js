@@ -107,6 +107,52 @@ function hideLoading() {
     document.getElementById('loading').style.display = 'none';
 }
 
+// Show notification message (better than alert)
+function showNotification(message, type = 'info', duration = 5000) {
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        `;
+        document.body.appendChild(notification);
+    }
+
+    // Set color based on type
+    const colors = {
+        'info': { bg: '#2196F3', text: '#fff' },
+        'success': { bg: '#4CAF50', text: '#fff' },
+        'warning': { bg: '#FF9800', text: '#fff' },
+        'error': { bg: '#f44336', text: '#fff' }
+    };
+
+    const color = colors[type] || colors['info'];
+    notification.style.backgroundColor = color.bg;
+    notification.style.color = color.text;
+    notification.textContent = message;
+    notification.style.display = 'block';
+
+    // Auto-hide after duration
+    if (duration > 0) {
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, duration);
+    }
+}
+
 // Load AOI boundary
 async function loadAOI() {
     try {
@@ -459,7 +505,7 @@ async function loadNDVI() {
     if (typeof parseGeoraster === 'undefined') {
         console.error('GeoRaster library not loaded');
         hideLoading();
-        alert('NDVI visualization requires GeoRaster library. Please check console for errors.');
+        showNotification('NDVI visualization requires GeoRaster library. Please check console for errors.', 'error');
         return false;
     }
 
@@ -489,7 +535,7 @@ async function loadNDVI() {
     } catch (error) {
         console.error('❌ Error loading NDVI:', error);
         hideLoading();
-        alert('Could not load NDVI data. Error: ' + error.message);
+        showNotification('Could not load NDVI data: ' + error.message, 'error', 7000);
         return false;
     }
 }
@@ -567,7 +613,7 @@ async function loadElevation() {
     if (typeof parseGeoraster === 'undefined') {
         console.error('GeoRaster library not loaded');
         hideLoading();
-        alert('Elevation visualization requires GeoRaster library.');
+        showNotification('Elevation visualization requires GeoRaster library.', 'error');
         return false;
     }
 
@@ -597,7 +643,7 @@ async function loadElevation() {
     } catch (error) {
         console.error('❌ Error loading elevation:', error);
         hideLoading();
-        alert('Could not load elevation data. Error: ' + error.message);
+        showNotification('Could not load elevation data: ' + error.message, 'error', 7000);
         return false;
     }
 }
@@ -678,7 +724,7 @@ async function loadFirePerimeters() {
     } catch (error) {
         console.error('❌ Error loading fire perimeters:', error);
         hideLoading();
-        alert('Could not load fire perimeter data. Error: ' + error.message);
+        showNotification('Could not load fire perimeter data: ' + error.message, 'error', 7000);
         return false;
     }
 }
@@ -757,7 +803,7 @@ async function loadFuelType() {
     if (typeof parseGeoraster === 'undefined') {
         console.error('GeoRaster library not loaded');
         hideLoading();
-        alert('Fuel type visualization requires GeoRaster library.');
+        showNotification('Fuel type visualization requires GeoRaster library.', 'error');
         return false;
     }
 
@@ -787,7 +833,7 @@ async function loadFuelType() {
     } catch (error) {
         console.error('❌ Error loading fuel type:', error);
         hideLoading();
-        alert('Could not load fuel type data. Error: ' + error.message);
+        showNotification('Could not load fuel type data: ' + error.message, 'error', 7000);
         return false;
     }
 }

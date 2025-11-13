@@ -15,6 +15,7 @@ import sys
 import argparse
 from pathlib import Path
 from datetime import datetime
+import pandas as pd
 import geopandas as gpd
 import rasterio
 from rasterio.merge import merge
@@ -444,12 +445,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Import pandas for fire perimeter concatenation
-    try:
-        import pandas as pd
-    except ImportError:
-        print("Error: pandas is required")
-        print("Install with: pip install pandas")
-        sys.exit(1)
-
     main()

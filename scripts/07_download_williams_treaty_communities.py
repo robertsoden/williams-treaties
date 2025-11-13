@@ -23,6 +23,7 @@ Usage:
 import sys
 import argparse
 from pathlib import Path
+import io
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point, Polygon
@@ -331,10 +332,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        import io
-    except ImportError:
-        print("Error: io module required")
-        sys.exit(1)
-
     main()
