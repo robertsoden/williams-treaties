@@ -17,6 +17,7 @@ const CONFIG = {
         treatyBoundary: '/data/boundaries/williams_treaty.geojson',
         ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif',
         charities: '/data/processed/charities/environmental_organizations.geojson',
+        communities: '/data/processed/communities/williams_treaty_communities.geojson',
         elevation: '/data/processed/dem/elevation.tif'
     },
 
@@ -315,6 +316,68 @@ async function loadCharities() {
     }
 }
 
+// Load Williams Treaty First Nations communities
+async function loadCommunities() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.communities);
+        const geojson = await response.json();
+
+        map.addSource('communities', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add circle markers for communities
+        map.addLayer({
+            id: 'communities-circles',
+            type: 'circle',
+            source: 'communities',
+            paint: {
+                'circle-radius': 8,
+                'circle-color': '#d73027',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.9
+            }
+        });
+
+        // Initially hide the layer
+        map.setLayoutProperty('communities-circles', 'visibility', 'none');
+
+        // Add click handler for popups
+        map.on('click', 'communities-circles', (e) => {
+            const properties = e.features[0].properties;
+            const coordinates = e.features[0].geometry.coordinates.slice();
+
+            // Format population
+            const population = properties.population ?
+                `~${parseInt(properties.population).toLocaleString()}` : 'N/A';
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <h4>${properties.name}</h4>
+                    <p><strong>Reserve:</strong> ${properties.reserve_name}</p>
+                    <p><strong>Population:</strong> ${population}</p>
+                    <p><strong>Treaty:</strong> ${properties.treaty}</p>
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'communities-circles', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'communities-circles', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        console.log(`✓ Loaded ${geojson.features.length} Williams Treaty First Nations communities`);
+    } catch (error) {
+        console.error('Error loading communities:', error);
+    }
+}
+
 // Create color scale for NDVI (0.2 to 0.8)
 function getNDVIColor(value) {
     if (value < 0.2) return [211, 48, 39, 180];      // Red - very low
@@ -551,6 +614,12 @@ function toggleLayer(layerId, visible) {
             }
             break;
 
+        case 'communities':
+            if (map.getLayer('communities-circles')) {
+                map.setLayoutProperty('communities-circles', 'visibility', visible ? 'visible' : 'none');
+            }
+            break;
+
         case 'ndvi':
             // Canvas-based rendering (only option with Mapbox GL JS)
             if (map.getLayer('ndvi-layer')) {
@@ -598,6 +667,7 @@ map.on('load', () => {
     // loadAOI(); // Replaced with actual treaty boundaries
     loadTreatyBoundary();
     loadCharities();
+    loadCommunities();
 
     // Check if NDVI is available (only need parseGeoraster for canvas rendering)
     const ndviAvailable = typeof parseGeoraster !== 'undefined';
@@ -628,6 +698,10 @@ document.getElementById('layer-treaty').addEventListener('change', (e) => {
 
 document.getElementById('layer-charities').addEventListener('change', (e) => {
     toggleLayer('charities', e.target.checked);
+});
+
+document.getElementById('layer-communities').addEventListener('change', (e) => {
+    toggleLayer('communities', e.target.checked);
 });
 
 document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
