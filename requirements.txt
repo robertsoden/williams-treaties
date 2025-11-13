@@ -28,6 +28,10 @@ click>=8.1.0  # CLI interface
 python-dotenv>=1.0.0  # Environment variables
 pyyaml>=6.0.0  # Configuration files
 
+# Web server
+flask>=3.0.0  # Web framework
+flask-cors>=4.0.0  # CORS support
+
 # Optional: for advanced analysis
 scipy>=1.11.0
 scikit-image>=0.22.0

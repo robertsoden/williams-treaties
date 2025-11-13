@@ -60,6 +60,27 @@ python scripts/05_download_flood_data.py   # Flood hazard data
 
 See [DATA_PIPELINE.md](./DATA_PIPELINE.md) for detailed instructions.
 
+### 3. View Data in Interactive Map
+
+```bash
+# Quick start - runs server and opens map
+./start_map.sh
+
+# Or manually start the server
+python web/server.py
+
+# Then open in browser: http://localhost:8000
+```
+
+See [web/README.md](./web/README.md) for detailed web application documentation.
+
+**Features:**
+- Full-screen interactive map with Mapbox basemaps
+- Layer controls to toggle datasets on/off
+- NDVI visualization with color-coded legend
+- Study area boundary display
+- Responsive design for desktop and mobile
+
 ## Datasets
 
 See [DATASETS.md](./DATASETS.md) for comprehensive information about data sources, including:
@@ -74,6 +95,7 @@ See [DATASETS.md](./DATASETS.md) for comprehensive information about data source
 williams-treaties/
 ├── config.yaml              # Configuration settings
 ├── requirements.txt         # Python dependencies
+├── start_map.sh            # Quick start script for web map
 ├── scripts/                 # Data download and processing scripts
 │   ├── utils/              # Common utilities
 │   ├── 01_download_aoi.py
@@ -82,6 +104,12 @@ williams-treaties/
 │   ├── 04_download_fire_data.py
 │   ├── 05_download_flood_data.py
 │   └── run_all.py          # Run complete pipeline
+├── web/                     # Interactive map application
+│   ├── index.html          # Main map interface
+│   ├── css/style.css       # Styling
+│   ├── js/map.js           # Map logic
+│   ├── server.py           # Flask web server
+│   └── README.md           # Web app documentation
 ├── data/
 │   ├── boundaries/         # Study area boundaries
 │   ├── raw/               # Downloaded raw data
@@ -93,7 +121,7 @@ williams-treaties/
 
 ## Project Status
 
-🚧 **In Development** - Data pipeline complete, map interface in progress
+✅ **Core Features Complete** - Ready for local use and data exploration
 
 **Completed:**
 - ✅ Dataset identification and documentation
@@ -101,12 +129,15 @@ williams-treaties/
 - ✅ NDVI processing pipeline
 - ✅ AOI boundary definition
 - ✅ Configuration and utilities
+- ✅ Interactive web map interface
+- ✅ Layer controls and visualization
+- ✅ Full-screen map browser with Mapbox basemaps
 
 **Next Steps:**
-- 🔲 Build interactive map interface
-- 🔲 Implement layer controls and visualization
 - 🔲 Add time-series analysis tools
-- 🔲 Deploy web application
+- 🔲 Implement additional data layers (land cover, fire, flood)
+- 🔲 Add data export functionality
+- 🔲 Deploy to web hosting (optional)
 
 ## License
 

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Williams Treaty Territories - Environmental Data Browser</title>
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <!-- GeoRaster Layer for GeoTIFF support -->
+    <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-maplibre@0.1.0/dist/georaster-layer-for-maplibre.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Layer Control Panel -->
+    <div id="layer-control">
+        <div class="control-header">
+            <h2>Williams Treaty Territories</h2>
+            <p class="subtitle">Environmental Data Browser</p>
+        </div>
+
+        <div class="control-section">
+            <h3>Base Layers</h3>
+            <div class="layer-group">
+                <label class="layer-item">
+                    <input type="radio" name="basemap" value="streets" checked>
+                    <span>Streets</span>
+                </label>
+                <label class="layer-item">
+                    <input type="radio" name="basemap" value="satellite">
+                    <span>Satellite</span>
+                </label>
+                <label class="layer-item">
+                    <input type="radio" name="basemap" value="outdoors">
+                    <span>Outdoors</span>
+                </label>
+                <label class="layer-item">
+                    <input type="radio" name="basemap" value="dark">
+                    <span>Dark</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Boundaries</h3>
+            <div class="layer-group">
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-aoi" checked>
+                    <span>Study Area (AOI)</span>
+                    <span class="layer-status">✓</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Vegetation</h3>
+            <div class="layer-group">
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-ndvi">
+                    <span>NDVI (Vegetation Index)</span>
+                    <span class="layer-status"></span>
+                </label>
+                <div class="layer-info">
+                    <small>June 2024 composite (example data)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Fire Hazard</h3>
+            <div class="layer-group">
+                <label class="layer-item disabled">
+                    <input type="checkbox" id="layer-fire" disabled>
+                    <span>Fire Risk Zones</span>
+                    <span class="layer-status">⚠</span>
+                </label>
+                <div class="layer-info">
+                    <small>Download required - see documentation</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Flood Hazard</h3>
+            <div class="layer-group">
+                <label class="layer-item disabled">
+                    <input type="checkbox" id="layer-flood" disabled>
+                    <span>Flood Plains</span>
+                    <span class="layer-status">⚠</span>
+                </label>
+                <div class="layer-info">
+                    <small>Download required - see documentation</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-section legend" id="ndvi-legend" style="display: none;">
+            <h3>NDVI Legend</h3>
+            <div class="legend-gradient">
+                <div class="legend-bar"></div>
+                <div class="legend-labels">
+                    <span>0.2<br><small>Low</small></span>
+                    <span>0.4<br><small>Moderate</small></span>
+                    <span>0.6<br><small>High</small></span>
+                    <span>0.8<br><small>Dense</small></span>
+                </div>
+            </div>
+            <p class="legend-description">Vegetation health indicator</p>
+        </div>
+
+        <div class="control-footer">
+            <small>Data sources: NRCan, Ontario MNRF, Conservation Authorities</small>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div id="info-panel">
+        <button id="toggle-control">☰</button>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading data...</p>
+    </div>
+
+    <script src="js/map.js"></script>
+</body>
+</html>
