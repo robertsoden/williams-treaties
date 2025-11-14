@@ -9,11 +9,23 @@ class LayerManager {
         this.config = config;
         this.loadedLayers = new Set();
         this.layerState = {};
+        this.loadingLayers = new Set(); // Track layers currently being loaded
+        this.eventHandlers = new Map(); // Store event handlers for cleanup
 
         // Initialize layer state
         this.config.layers.forEach(layer => {
             this.layerState[layer.id] = layer.initial_visibility || false;
         });
+    }
+
+    /**
+     * Escape HTML to prevent XSS attacks
+     */
+    escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     /**
@@ -198,19 +210,35 @@ class LayerManager {
      * Attach event listeners to layer controls
      */
     attachEventListeners() {
-        this.config.layers.forEach(layer => {
+        // Only attach listeners to active layers (those with UI elements)
+        this.config.layers
+            .filter(layer => layer.active !== false)
+            .forEach(layer => {
             const checkbox = document.getElementById(`layer-${layer.id}`);
             if (checkbox) {
                 checkbox.addEventListener('change', async (e) => {
                     const checked = e.target.checked;
 
+                    // Prevent race condition - check if already loading
+                    if (this.loadingLayers.has(layer.id)) {
+                        console.log(`Layer ${layer.name} is already loading, please wait...`);
+                        e.target.checked = !checked; // Revert checkbox
+                        showNotification(`${layer.name} is still loading, please wait...`, 'info', 2000);
+                        return;
+                    }
+
                     // If turning on and not loaded yet, load it first
                     if (checked && layer.lazy_load && !this.loadedLayers.has(layer.id)) {
                         console.log(`First time loading ${layer.name}...`);
-                        const loaded = await this.loadLayer(layer);
-                        if (!loaded) {
-                            e.target.checked = false;
-                            return;
+                        this.loadingLayers.add(layer.id); // Mark as loading
+                        try {
+                            const loaded = await this.loadLayer(layer);
+                            if (!loaded) {
+                                e.target.checked = false;
+                                return;
+                            }
+                        } finally {
+                            this.loadingLayers.delete(layer.id); // Clear loading state
                         }
                     }
 
@@ -231,8 +259,21 @@ class LayerManager {
                 return await this.loadRasterLayer(layer);
             }
         } catch (error) {
-            console.error(`Error loading ${layer.name}:`, error);
-            showNotification(`Could not load ${layer.name}: ${error.message}`, 'error', 7000);
+            // Enhanced error logging with full context
+            const errorContext = {
+                layerId: layer.id,
+                layerName: layer.name,
+                layerType: layer.type,
+                dataUrl: layer.data_url,
+                errorMessage: error.message,
+                errorStack: error.stack
+            };
+            console.error(`Error loading layer "${layer.name}" (${layer.id}, type: ${layer.type}) from ${layer.data_url}:`, error, errorContext);
+
+            // User-friendly notification
+            const statusCode = error.status || error.statusCode;
+            const statusInfo = statusCode ? ` (HTTP ${statusCode})` : '';
+            showNotification(`Could not load ${layer.name}${statusInfo}: ${error.message}`, 'error', 7000);
             return false;
         }
     }
@@ -272,11 +313,22 @@ class LayerManager {
      * Add a point layer (circles)
      */
     addPointLayer(layer) {
+        // Validate required style properties
+        if (!layer.style?.circle) {
+            throw new Error(`Layer ${layer.id}: Missing required style.circle configuration`);
+        }
+        if (layer.style.circle.radius === undefined) {
+            throw new Error(`Layer ${layer.id}: Missing required style.circle.radius`);
+        }
+        if (layer.style.circle.opacity === undefined) {
+            throw new Error(`Layer ${layer.id}: Missing required style.circle.opacity`);
+        }
+
         const paint = {
             'circle-radius': layer.style.circle.radius,
             'circle-opacity': layer.style.circle.opacity,
-            'circle-stroke-width': layer.style.circle.stroke_width,
-            'circle-stroke-color': layer.style.circle.stroke_color
+            'circle-stroke-width': layer.style.circle.stroke_width || 0,
+            'circle-stroke-color': layer.style.circle.stroke_color || '#000000'
         };
 
         // Handle color styling
@@ -317,6 +369,17 @@ class LayerManager {
      * Add a polygon layer (fill + outline)
      */
     addPolygonLayer(layer) {
+        // Validate required style properties
+        if (!layer.style?.fill) {
+            throw new Error(`Layer ${layer.id}: Missing required style.fill configuration`);
+        }
+        if (layer.style.fill.opacity === undefined) {
+            throw new Error(`Layer ${layer.id}: Missing required style.fill.opacity`);
+        }
+        if (!layer.style?.outline) {
+            throw new Error(`Layer ${layer.id}: Missing required style.outline configuration`);
+        }
+
         const beforeLayer = layer.style.before_layer || undefined;
 
         // Fill layer
@@ -352,9 +415,9 @@ class LayerManager {
             type: 'line',
             source: layer.id,
             paint: {
-                'line-color': layer.style.outline.color,
-                'line-width': layer.style.outline.width,
-                'line-opacity': layer.style.outline.opacity
+                'line-color': layer.style.outline.color || '#000000',
+                'line-width': layer.style.outline.width || 1,
+                'line-opacity': layer.style.outline.opacity !== undefined ? layer.style.outline.opacity : 1
             }
         }, beforeLayer);
 
@@ -434,12 +497,32 @@ class LayerManager {
             [xmax, ymax] = [ymax, xmax];
         }
 
-        // Special handling for elevation layer alignment
-        if (layer.id === 'elevation') {
-            const pixelHeight = (ymax - ymin) / georaster.height;
-            const latShift = pixelHeight * 45.36;
-            ymin -= latShift;
-            ymax -= latShift;
+        // Apply coordinate adjustment if configured
+        if (layer.coordinate_adjustment) {
+            const adj = layer.coordinate_adjustment;
+            if (adj.shift_axis === 'latitude' && adj.shift_multiplier) {
+                const pixelHeight = (ymax - ymin) / georaster.height;
+                const latShift = pixelHeight * adj.shift_multiplier;
+                if (adj.shift_direction === 'negative') {
+                    ymin -= latShift;
+                    ymax -= latShift;
+                } else {
+                    ymin += latShift;
+                    ymax += latShift;
+                }
+                console.log(`Applied coordinate adjustment: ${adj.shift_direction} ${latShift} to latitude`);
+            } else if (adj.shift_axis === 'longitude' && adj.shift_multiplier) {
+                const pixelWidth = (xmax - xmin) / georaster.width;
+                const lonShift = pixelWidth * adj.shift_multiplier;
+                if (adj.shift_direction === 'negative') {
+                    xmin -= lonShift;
+                    xmax -= lonShift;
+                } else {
+                    xmin += lonShift;
+                    xmax += lonShift;
+                }
+                console.log(`Applied coordinate adjustment: ${adj.shift_direction} ${lonShift} to longitude`);
+            }
         }
 
         const coordinates = [
@@ -508,7 +591,8 @@ class LayerManager {
 
         const layerId = layer.type === 'point' ? `${layer.id}-circles` : `${layer.id}-fill`;
 
-        this.map.on('click', layerId, (e) => {
+        // Create handler functions
+        const clickHandler = (e) => {
             const properties = e.features[0].properties;
             const coordinates = layer.type === 'point'
                 ? e.features[0].geometry.coordinates.slice()
@@ -520,15 +604,42 @@ class LayerManager {
                 .setLngLat(coordinates)
                 .setHTML(html)
                 .addTo(this.map);
+        };
+
+        const mouseenterHandler = () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        };
+
+        const mouseleaveHandler = () => {
+            this.map.getCanvas().style.cursor = '';
+        };
+
+        // Store handlers for cleanup
+        this.eventHandlers.set(layer.id, {
+            layerId,
+            clickHandler,
+            mouseenterHandler,
+            mouseleaveHandler
         });
 
-        // Change cursor on hover
-        this.map.on('mouseenter', layerId, () => {
-            this.map.getCanvas().style.cursor = 'pointer';
-        });
-        this.map.on('mouseleave', layerId, () => {
-            this.map.getCanvas().style.cursor = '';
-        });
+        // Attach handlers
+        this.map.on('click', layerId, clickHandler);
+        this.map.on('mouseenter', layerId, mouseenterHandler);
+        this.map.on('mouseleave', layerId, mouseleaveHandler);
+    }
+
+    /**
+     * Remove popup handlers for a layer
+     */
+    removePopupHandlers(layerId) {
+        const handlers = this.eventHandlers.get(layerId);
+        if (!handlers) return;
+
+        this.map.off('click', handlers.layerId, handlers.clickHandler);
+        this.map.off('mouseenter', handlers.layerId, handlers.mouseenterHandler);
+        this.map.off('mouseleave', handlers.layerId, handlers.mouseleaveHandler);
+
+        this.eventHandlers.delete(layerId);
     }
 
     /**
@@ -550,7 +661,7 @@ class LayerManager {
             }
             if (!title) title = layer.popup.title_default || '';
         }
-        html += `<h4>${title}</h4>`;
+        html += `<h4>${this.escapeHTML(title)}</h4>`;
 
         // Fields
         layer.popup.fields.forEach(fieldConfig => {
@@ -637,11 +748,14 @@ class LayerManager {
 
             // Format as link if specified
             if (fieldConfig.type === 'link' && value) {
-                value = `<a href="${value}" target="_blank">Website</a>`;
+                value = `<a href="${this.escapeHTML(value)}" target="_blank" rel="noopener noreferrer">Website</a>`;
             }
 
             if (value || value === 0) {
-                html += `<p><strong>${label}:</strong> ${value}</p>`;
+                // Escape label and value unless value is already HTML (like links)
+                const escapedLabel = this.escapeHTML(label);
+                const escapedValue = fieldConfig.type === 'link' ? value : this.escapeHTML(value);
+                html += `<p><strong>${escapedLabel}:</strong> ${escapedValue}</p>`;
             }
         });
 
@@ -699,7 +813,12 @@ class LayerManager {
             }
 
         } catch (error) {
-            console.error(`Error toggling layer ${layerId}:`, error);
+            console.error(`Error toggling layer "${layer.name}" (${layerId}) to ${visible ? 'visible' : 'hidden'}:`, error, {
+                layerId,
+                layerName: layer.name,
+                targetVisibility: visible,
+                currentState: this.layerState[layerId]
+            });
             showNotification(`Error toggling ${layer.name}: ${error.message}`, 'error');
         }
     }
@@ -709,6 +828,11 @@ class LayerManager {
      */
     async reloadLayers() {
         console.log('Reloading layers after basemap change...');
+
+        // Remove all event handlers before reloading
+        for (const layerId of this.eventHandlers.keys()) {
+            this.removePopupHandlers(layerId);
+        }
 
         for (const layer of this.config.layers) {
             // Skip if never loaded

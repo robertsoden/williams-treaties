@@ -429,6 +429,12 @@ layers:
     lazy_load: true
     requires_library: georaster
 
+    # Coordinate adjustment to fix alignment issues
+    coordinate_adjustment:
+      shift_multiplier: 45.36  # Pixel height multiplier for latitude shift
+      shift_axis: latitude     # Which axis to adjust (latitude = y-axis)
+      shift_direction: negative # Shift direction (negative = subtract)
+
     style:
       opacity: 0.6
       color_scale:
@@ -469,7 +475,7 @@ layers:
       description: SRTM 30m elevation data - Real terrain
 
     info:
-      description: Synthetic elevation data (250-400m)
+      description: SRTM 30m resolution Digital Elevation Model showing real terrain elevation from approximately 75m to 600m above sea level
 
   # ============================================================================
   # FIRE DATA
