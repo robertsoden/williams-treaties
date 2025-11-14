@@ -1,0 +1,566 @@
+# Williams Treaty Territories - Layer Configuration
+# This file defines all map layers and their properties
+
+# Layer categories for organizing the UI
+categories:
+  - id: boundaries
+    name: Boundaries
+    order: 1
+
+  - id: organizations
+    name: Organizations
+    order: 2
+
+  - id: communities
+    name: Communities
+    order: 3
+
+  - id: vegetation
+    name: Vegetation
+    order: 4
+
+  - id: topography
+    name: Topography
+    order: 5
+
+  - id: fire
+    name: Fire Data
+    order: 6
+
+  - id: community_data
+    name: Community Data
+    order: 7
+
+# Layer definitions
+layers:
+  # ============================================================================
+  # BOUNDARIES
+  # ============================================================================
+
+  - id: treaty
+    name: Williams Treaty Territories
+    category: boundaries
+    type: polygon
+    data_url: /data/boundaries/williams_treaty.geojson
+    initial_visibility: true
+    status: available
+
+    style:
+      fill:
+        color: '#2c5f2d'
+        opacity: 0.1
+      outline:
+        color: '#2c5f2d'
+        width: 3
+        opacity: 0.8
+
+    popup:
+      title_field: ENAME
+      title_default: Williams Treaty Territories
+      fields:
+        - label: Treaty Date
+          field: DATE_YEAR
+          default: '1923'
+        - label: Category
+          field: Category
+          default: Treaty Land
+
+    info:
+      description: Treaty boundaries signed in 1923
+
+  - id: reserves
+    name: First Nations Reserves
+    category: boundaries
+    type: polygon
+    data_url: /data/processed/communities/williams_treaty_reserves.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#fc8d59'
+        opacity: 0.3
+      outline:
+        color: '#d73027'
+        width: 2
+        opacity: 0.8
+      before_layer: treaty-fill
+
+    popup:
+      title_fields: [ENGLISH_NAME, name]
+      title_default: First Nation Reserve
+      fields:
+        - label: Reserve
+          fields: [RESERVE_NAME, reserve_name]
+          default: N/A
+        - label: Band
+          fields: [BAND_NAME, band_name]
+          default: N/A
+        - label: Area
+          field: AREA_SQKM
+          format: '{value:.2f} km²'
+
+    info:
+      description: Reserve boundaries for 7 communities
+
+  # ============================================================================
+  # ORGANIZATIONS
+  # ============================================================================
+
+  - id: charities
+    name: Environmental Charities
+    category: organizations
+    type: point
+    data_url: /data/processed/charities/environmental_organizations.geojson
+    initial_visibility: false
+    status: available
+
+    style:
+      circle:
+        radius: 6
+        color: '#3887be'
+        opacity: 0.8
+        stroke_width: 2
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: name
+      fields:
+        - label: Location
+          format: '{city}, {province}'
+        - label: Category
+          field: category
+        - label: Revenue
+          field: revenue
+          format: '${value:,.0f}'
+        - label: Programs
+          field: programs
+          truncate: 100
+        - label: Website
+          field: website
+          type: link
+
+    info:
+      description: 186 environmental organizations
+
+  # ============================================================================
+  # COMMUNITIES
+  # ============================================================================
+
+  - id: communities
+    name: Williams Treaty First Nations
+    category: communities
+    type: point
+    data_url: /data/processed/communities/williams_treaty_communities.geojson
+    initial_visibility: false
+    status: available
+
+    style:
+      circle:
+        radius: 8
+        color: '#d73027'
+        opacity: 0.9
+        stroke_width: 2
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: name
+      fields:
+        - label: Reserve
+          field: reserve_name
+        - label: Population
+          field: population
+          format: '~{value:,.0f}'
+        - label: Treaty
+          field: treaty
+
+    info:
+      description: 7 First Nations communities (~9,000 people)
+
+  - id: infrastructure
+    name: Infrastructure Projects
+    category: community_data
+    type: point
+    data_url: /data/processed/infrastructure/infrastructure_projects.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        opacity: 0.8
+        stroke_width: 1
+        stroke_color: '#ffffff'
+        # Data-driven styling
+        color:
+          type: categorical
+          field: category
+          values:
+            Housing: '#e41a1c'
+            'Water and Wastewater': '#377eb8'
+            'Solid Waste Management': '#4daf4a'
+            'Fire Protection': '#ff7f00'
+            Health: '#984ea3'
+          default: '#999999'
+
+    popup:
+      title_fields: [project_name]
+      title_default: Infrastructure Project
+      fields:
+        - label: Community
+          field: community
+        - label: Category
+          field: category
+        - label: Status
+          field: status
+        - label: Description
+          field: description
+          truncate: 200
+        - label: Investment
+          field: investment
+          hide_if: Not Available
+
+    info:
+      description: 445 federal infrastructure projects
+
+  - id: water_advisories
+    name: Water Advisories
+    category: community_data
+    type: point
+    data_url: /data/processed/water/water_advisories.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 7
+        opacity: 0.9
+        stroke_width: 2
+        stroke_color: '#ffffff'
+        # Data-driven styling
+        color:
+          type: conditional
+          field: is_active
+          conditions:
+            - when: true
+              value: '#d73027'  # Red for active
+            - when: false
+              value: '#91cf60'  # Green for lifted
+
+    popup:
+      title_fields: [water_system]
+      title_default: Water System
+      fields:
+        - label: First Nation
+          field: first_nation
+        - label: Status
+          field: is_active
+          format_active: '<span style="color:#d73027;font-weight:bold">ACTIVE</span>'
+          format_inactive: '<span style="color:#91cf60;font-weight:bold">Lifted</span>'
+        - label: Type
+          field: advisory_type
+        - label: Date Set
+          field: date_set
+        - label: Date Lifted
+          field: date_lifted
+          optional: true
+        - label: Duration
+          field: duration_days
+          format: '{value} days'
+          optional: true
+        - label: Corrective Measure
+          field: corrective_measure
+          optional: true
+
+    info:
+      description: Drinking water advisories (1 active)
+
+  - id: cwb
+    name: Community Well-Being
+    category: community_data
+    type: polygon
+    data_url: /data/processed/cwb/community_wellbeing.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      fill:
+        # Choropleth coloring
+        color:
+          type: interpolate
+          field: cwb_score
+          stops:
+            - [60, '#d73027']  # Low CWB - red
+            - [70, '#fee08b']  # Medium - yellow
+            - [80, '#91cf60']  # High CWB - green
+        opacity: 0.6
+      outline:
+        color: '#333'
+        width: 1.5
+        opacity: 0.8
+      before_layer: treaty-fill
+
+    popup:
+      title_field: name
+      fields:
+        - label: Community Well-Being Score
+          field: cwb_score
+        - label: Population
+          field: population
+        - label: Income
+          field: income_score
+          optional: true
+        - label: Education
+          field: education_score
+          optional: true
+        - label: Housing
+          field: housing_score
+          optional: true
+        - label: Labour
+          field: labour_score
+          optional: true
+
+    info:
+      description: 122 communities in treaty area (2021 data)
+
+  - id: csicp
+    name: Cultural Infrastructure Funding
+    category: community_data
+    type: point
+    data_url: /data/processed/csicp/csicp_funding.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 8
+        color: '#9e0142'
+        opacity: 0.9
+        stroke_width: 2
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: project_name
+      fields:
+        - label: Group
+          field: group_name
+        - label: Community
+          field: matched_community
+        - label: Type
+          field: project_type
+        - label: Funding
+          field: funding
+          format: '${value:,.0f}'
+
+    info:
+      description: CSICP projects ($60,000)
+
+  # ============================================================================
+  # VEGETATION
+  # ============================================================================
+
+  - id: ndvi
+    name: NDVI (Vegetation Index)
+    category: vegetation
+    type: raster
+    data_url: /data/processed/ndvi/ndvi_example_2024-06.tif
+    initial_visibility: false
+    status: available
+    lazy_load: true
+    requires_library: georaster
+
+    style:
+      opacity: 0.7
+      color_scale:
+        type: continuous
+        steps:
+          - [0.2, [211, 48, 39, 180]]      # Red - very low
+          - [0.3, [252, 141, 89, 180]]     # Orange-red - low
+          - [0.4, [254, 224, 139, 180]]    # Yellow - moderate-low
+          - [0.5, [217, 239, 139, 180]]    # Yellow-green - moderate
+          - [0.6, [145, 207, 96, 180]]     # Light green - moderate-high
+          - [0.7, [26, 152, 80, 180]]      # Green - high
+          - [0.8, [0, 104, 55, 200]]       # Dark green - very high
+      before_layer: treaty-fill
+
+    legend:
+      type: gradient
+      title: NDVI Legend
+      gradient: linear-gradient(to right, #d33027, #fc8d59, #fee08b, #d9ef8b, #91cf60, #1a9850, #006837)
+      stops:
+        - value: 0.2
+          label: Low
+        - value: 0.4
+          label: Moderate
+        - value: 0.6
+          label: High
+        - value: 0.8
+          label: Dense
+      description: Vegetation health indicator
+
+    info:
+      description: June 2024 composite - Check console if not working
+
+  # ============================================================================
+  # TOPOGRAPHY
+  # ============================================================================
+
+  - id: elevation
+    name: Elevation (DEM)
+    category: topography
+    type: raster
+    data_url: /data/processed/dem/elevation.tif
+    initial_visibility: false
+    status: available
+    lazy_load: true
+    requires_library: georaster
+
+    style:
+      opacity: 0.6
+      color_scale:
+        type: continuous
+        steps:
+          - [75, [8, 48, 107, 180]]         # Dark blue - water/lake level
+          - [150, [33, 113, 181, 180]]      # Medium blue - lowlands
+          - [225, [66, 146, 198, 180]]      # Light blue - low elevation
+          - [300, [107, 174, 214, 180]]     # Pale blue - moderate
+          - [350, [158, 202, 225, 180]]     # Very pale blue/cyan
+          - [400, [198, 219, 239, 180]]     # Almost white-blue
+          - [450, [253, 208, 162, 180]]     # Light orange - highlands
+          - [500, [253, 174, 107, 180]]     # Orange - high elevation
+          - [550, [241, 105, 19, 180]]      # Dark orange - mountains
+          - [600, [217, 72, 1, 200]]        # Red-orange - highest peaks
+      before_layer: treaty-fill
+
+    legend:
+      type: gradient
+      title: Elevation Legend
+      gradient: linear-gradient(to right, #08306b, #2171b5, #6baed6, #c6dbef, #fdd0a2, #fdae6b, #f16913, #d94801)
+      stops:
+        - value: 7
+          label: Water
+          unit: m
+        - value: 150
+          label: Lowlands
+          unit: m
+        - value: 300
+          label: Moderate
+          unit: m
+        - value: 450
+          label: Highlands
+          unit: m
+        - value: 582
+          label: Peaks
+          unit: m
+      description: SRTM 30m elevation data - Real terrain
+
+    info:
+      description: Synthetic elevation data (250-400m)
+
+  # ============================================================================
+  # FIRE DATA
+  # ============================================================================
+
+  - id: fire
+    name: Fire Perimeters
+    category: fire
+    type: polygon
+    data_url: /data/processed/fire/fire_perimeters_1976_2024.geojson
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#d73027'
+        opacity: 0.4
+      outline:
+        color: '#a50026'
+        width: 1
+        opacity: 0.8
+
+    popup:
+      title: Fire Perimeter
+      fields:
+        - label: Year
+          fields: [year, YEAR, EXERCICE, AN_ORIGINE]
+          default: Unknown
+        - label: Area
+          field: area
+          format: '{value_ha:.2f} ha'
+          calculate_ha_from: area  # area in m²
+        - label: Fire ID
+          field: FIRE_ID
+          optional: true
+        - label: Origin
+          field: ORIGINE
+          optional: true
+
+    legend:
+      type: items
+      title: Fire Perimeters Legend
+      items:
+        - color: rgba(215, 48, 39, 0.4)
+          border: 1px solid #a50026
+          label: Historical fire boundaries (2010-2024)
+      description: Click on fire perimeters for details
+
+    info:
+      description: Historical fire perimeters (2010-2024)
+
+    # Special behavior
+    zoom_on_show:
+      bounds: [[-78.7073861, 45.805734], [-76.91731653, 46.38118623]]
+      padding: 50
+
+  - id: fuel_type
+    name: Wildland Fuel Classification
+    category: fire
+    type: raster
+    data_url: /data/processed/fuel/fuel_types.tif
+    initial_visibility: false
+    status: available
+    lazy_load: true
+    requires_library: georaster
+
+    style:
+      opacity: 0.6
+      color_scale:
+        type: categorical
+        values:
+          0: [200, 200, 200, 100]      # Non-fuel / Water
+          99: [200, 200, 200, 100]     # Water
+          1-4: [34, 139, 34, 180]      # Coniferous (C-1 to C-4) - Green
+          5-7: [0, 100, 0, 180]        # Coniferous Dense (C-5 to C-7) - Dark green
+          11-18: [255, 215, 0, 180]    # Deciduous (D-1, D-2) - Gold
+          21-25: [173, 255, 47, 180]   # Mixed wood (M-1, M-2) - Yellow-green
+          31-32: [184, 134, 11, 180]   # Slash (S-1, S-2) - Dark gold
+          40-43: [255, 255, 153, 180]  # Grass (O-1a, O-1b) - Light yellow
+        default: [139, 69, 19, 180]    # Other - Brown
+      before_layer: treaty-fill
+
+    legend:
+      type: items
+      title: Fuel Type Legend
+      items:
+        - color: rgba(34, 139, 34, 0.7)
+          label: Coniferous (C-1 to C-4)
+        - color: rgba(0, 100, 0, 0.7)
+          label: Coniferous Dense (C-5 to C-7)
+        - color: rgba(255, 215, 0, 0.7)
+          label: Deciduous (D-1, D-2)
+        - color: rgba(173, 255, 47, 0.7)
+          label: Mixed Wood (M-1, M-2)
+        - color: rgba(184, 134, 11, 0.7)
+          label: Slash (S-1, S-2)
+        - color: rgba(255, 255, 153, 0.7)
+          label: Grass/Open (O-1a, O-1b)
+      description: Canadian FBP System fuel types
+
+    info:
+      description: Canadian FBP System fuel types

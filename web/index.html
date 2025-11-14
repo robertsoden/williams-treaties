@@ -9,23 +9,32 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
 
-    <!-- GeoRaster for GeoTIFF parsing (canvas rendering fallback) -->
+    <!-- GeoRaster for GeoTIFF parsing -->
     <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
 
-    <!-- Check if library loaded -->
+    <!-- js-yaml for YAML configuration parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
+    <!-- Check if libraries loaded -->
     <script>
         setTimeout(() => {
             console.log('GeoRaster loaded:', typeof parseGeoraster !== 'undefined');
+            console.log('js-yaml loaded:', typeof jsyaml !== 'undefined');
+
             if (typeof parseGeoraster === 'undefined') {
-                console.error('❌ GeoRaster library failed to load - NDVI will not work');
-            } else {
-                console.log('✓ Using canvas-based NDVI rendering (compatible with Mapbox GL JS)');
+                console.error('❌ GeoRaster library failed to load - raster layers unavailable');
+            }
+            if (typeof jsyaml === 'undefined') {
+                console.error('❌ js-yaml library failed to load - configuration system unavailable');
             }
         }, 500);
     </script>
 
     <!-- Optional: Load custom config if exists -->
     <script src="js/config.js"></script>
+
+    <!-- Layer Manager -->
+    <script src="js/layerManager.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -39,6 +48,7 @@
             <p class="subtitle">Environmental Data Browser</p>
         </div>
 
+        <!-- Base Layers (always present) -->
         <div class="control-section">
             <h3>Base Layers</h3>
             <div class="layer-group">
@@ -61,227 +71,7 @@
             </div>
         </div>
 
-        <div class="control-section">
-            <h3>Boundaries</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-treaty" checked>
-                    <span>Williams Treaty Territories</span>
-                    <span class="layer-status">✓</span>
-                </label>
-            </div>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-reserves">
-                    <span>First Nations Reserves</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>Reserve boundaries for 7 communities</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Organizations</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-charities">
-                    <span>Environmental Charities</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>186 environmental organizations</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Communities</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-communities">
-                    <span>Williams Treaty First Nations</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>7 First Nations communities (~9,000 people)</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Vegetation</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-ndvi">
-                    <span>NDVI (Vegetation Index)</span>
-                    <span class="layer-status" id="ndvi-status">⚙</span>
-                </label>
-                <div class="layer-info">
-                    <small id="ndvi-info">June 2024 composite - Check console if not working</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Topography</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-elevation">
-                    <span>Elevation (DEM)</span>
-                    <span class="layer-status" id="elevation-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>Synthetic elevation data (250-400m)</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Fire Data</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-fire">
-                    <span>Fire Perimeters</span>
-                    <span class="layer-status" id="fire-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>Historical fire perimeters (2010-2024)</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Fuel Types</h3>
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-fuel">
-                    <span>Wildland Fuel Classification</span>
-                    <span class="layer-status" id="fuel-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>Canadian FBP System fuel types</small>
-                </div>
-            </div>
-
-            <!-- Community Data -->
-            <div class="layer-group">
-                <h3>Community Data</h3>
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-infrastructure">
-                    <span>Infrastructure Projects</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>445 federal infrastructure projects</small>
-                </div>
-            </div>
-
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-water-advisories">
-                    <span>Water Advisories</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>Drinking water advisories (1 active)</small>
-                </div>
-            </div>
-
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-cwb">
-                    <span>Community Well-Being</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>122 communities in treaty area (2021 data)</small>
-                </div>
-            </div>
-
-            <div class="layer-group">
-                <label class="layer-item">
-                    <input type="checkbox" id="layer-csicp">
-                    <span>Cultural Infrastructure Funding</span>
-                    <span class="layer-status">✓</span>
-                </label>
-                <div class="layer-info">
-                    <small>CSICP projects ($60,000)</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="control-section legend" id="ndvi-legend" style="display: none;">
-            <h3>NDVI Legend</h3>
-            <div class="legend-gradient">
-                <div class="legend-bar"></div>
-                <div class="legend-labels">
-                    <span>0.2<br><small>Low</small></span>
-                    <span>0.4<br><small>Moderate</small></span>
-                    <span>0.6<br><small>High</small></span>
-                    <span>0.8<br><small>Dense</small></span>
-                </div>
-            </div>
-            <p class="legend-description">Vegetation health indicator</p>
-        </div>
-
-        <div class="control-section legend" id="elevation-legend" style="display: none;">
-            <h3>Elevation Legend</h3>
-            <div class="legend-gradient">
-                <div class="legend-bar" style="background: linear-gradient(to right, #08306b, #2171b5, #6baed6, #c6dbef, #fdd0a2, #fdae6b, #f16913, #d94801);"></div>
-                <div class="legend-labels">
-                    <span>7m<br><small>Water</small></span>
-                    <span>150m<br><small>Lowlands</small></span>
-                    <span>300m<br><small>Moderate</small></span>
-                    <span>450m<br><small>Highlands</small></span>
-                    <span>582m<br><small>Peaks</small></span>
-                </div>
-            </div>
-            <p class="legend-description">SRTM 30m elevation data - Real terrain</p>
-        </div>
-
-        <div class="control-section legend" id="fire-legend" style="display: none;">
-            <h3>Fire Perimeters Legend</h3>
-            <div class="legend-items">
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(215, 48, 39, 0.4); border: 1px solid #a50026;"></span>
-                    <span>Historical fire boundaries (2010-2024)</span>
-                </div>
-            </div>
-            <p class="legend-description">Click on fire perimeters for details</p>
-        </div>
-
-        <div class="control-section legend" id="fuel-legend" style="display: none;">
-            <h3>Fuel Type Legend</h3>
-            <div class="legend-items">
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(34, 139, 34, 0.7);"></span>
-                    <span>Coniferous (C-1 to C-4)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(0, 100, 0, 0.7);"></span>
-                    <span>Coniferous Dense (C-5 to C-7)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(255, 215, 0, 0.7);"></span>
-                    <span>Deciduous (D-1, D-2)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(173, 255, 47, 0.7);"></span>
-                    <span>Mixed Wood (M-1, M-2)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(184, 134, 11, 0.7);"></span>
-                    <span>Slash (S-1, S-2)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: rgba(255, 255, 153, 0.7);"></span>
-                    <span>Grass/Open (O-1a, O-1b)</span>
-                </div>
-            </div>
-            <p class="legend-description">Canadian FBP System fuel types</p>
-        </div>
+        <!-- Layer categories and controls will be generated dynamically here -->
 
         <div class="control-footer">
             <small>Data sources: NRCan, Ontario MNRF, Conservation Authorities</small>
@@ -299,6 +89,6 @@
         <p>Loading data...</p>
     </div>
 
-    <script src="js/map.js"></script>
+    <script src="js/map-new.js"></script>
 </body>
 </html>
