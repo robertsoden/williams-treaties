@@ -2,6 +2,27 @@
 
 Some data layers for the Williams Treaty Territories map require manual download due to access restrictions, file size, or licensing requirements. This document provides step-by-step instructions for each layer.
 
+## Workflow
+
+The recommended workflow is:
+
+1. **Download** the raw Canada-wide or regional dataset
+2. **Save** to `data/raw/<layer>/` directory
+3. **Run** the provided filter/clip script to extract Williams Treaty area
+4. **Verify** the output in the web map
+
+### Filter Scripts Available
+
+We provide automated scripts to filter/clip the raw downloads:
+
+- **Reserve Boundaries:** `scripts/filters/filter_reserve_boundaries.py`
+- **Fire Perimeters:** `scripts/filters/filter_fire_perimeters.py`
+- **Fuel Types:** `scripts/filters/clip_fuel_types.py`
+
+These scripts handle all the filtering, reprojection, and formatting automatically.
+
+---
+
 ## Overview
 
 **Layers requiring manual download:**
@@ -21,18 +42,37 @@ Some data layers for the Williams Treaty Territories map require manual download
 ### Download Steps:
 
 1. Visit the Open Canada portal link above
-2. Look for download options (GeoJSON, Shapefile, or GeoPackage format)
+2. Look for download options (GeoJSON, Shapefile, or GeoPackage format preferred)
 3. Download the complete Canada-wide dataset
-4. Filter for the 7 Williams Treaty reserves:
-   - Alderville 35
-   - Curve Lake 35
-   - Hiawatha 36
-   - Scugog Island 34
-   - Chimnissing 1 (Beausoleil)
-   - Georgina Island 33
-   - Rama 32
+4. Save to `data/raw/reserves/` directory
 
-### Filtering the Data:
+### Processing with Filter Script (Recommended):
+
+```bash
+# Run the automated filter script
+python scripts/filters/filter_reserve_boundaries.py data/raw/reserves/your_downloaded_file.shp
+
+# List available fields if needed
+python scripts/filters/filter_reserve_boundaries.py data/raw/reserves/your_downloaded_file.shp --list-fields
+```
+
+**The script will automatically:**
+- Filter for the 7 Williams Treaty reserves
+- Handle name variations and fuzzy matching
+- Reproject to WGS84
+- Standardize field names
+- Save to `data/processed/communities/williams_treaty_reserves.geojson`
+
+**Reserves included:**
+- Alderville 35
+- Curve Lake 35
+- Hiawatha 36
+- Scugog Island 34
+- Chimnissing 1 (Beausoleil)
+- Georgina Island 33
+- Rama 32
+
+### Manual Filtering (Alternative):
 
 **Option A: Using QGIS**
 ```
@@ -94,27 +134,50 @@ data/processed/communities/williams_treaty_reserves.geojson
 
 ### Download Steps:
 
-1. Visit the CWFIS Data Mart
+1. Visit the CWFIS Data Mart (or NBAC portal below)
 2. Navigate to: **Historical Fire Data** > **Fire Perimeters**
-3. Select years: 2010-2024
-4. Download format: **Shapefile** or **GeoJSON**
-5. Filter for Ontario or use bounding box for Williams Treaty area
+3. Download the dataset (Ontario or Canada-wide)
+4. Save to `data/raw/fire/` directory
 
-### Alternative Source:
+**Alternative Source (Recommended):**
 National Burned Area Composite (NBAC)
 - Portal: https://open.canada.ca/data/en/dataset/9d8f219c-4df0-4481-926f-8a2a532ca003
 - More complete historical dataset
 - Includes all provinces/territories
 
-### Filtering for Study Area:
+### Processing with Filter Script (Recommended):
 
-**Bounding Box for Williams Treaty Territories:**
+```bash
+# Run the automated filter script
+python scripts/filters/filter_fire_perimeters.py data/raw/fire/your_downloaded_file.shp
+
+# Customize time range (default: 2010-2024)
+python scripts/filters/filter_fire_perimeters.py data/raw/fire/your_downloaded_file.shp --start-year 2015 --end-year 2024
+
+# Use AOI boundary instead of bounding box
+python scripts/filters/filter_fire_perimeters.py data/raw/fire/your_downloaded_file.shp --use-aoi
+
+# List available fields
+python scripts/filters/filter_fire_perimeters.py data/raw/fire/your_downloaded_file.shp --list-fields
 ```
-West:  -80.0
-East:  -78.0
-South:  44.0
-North:  45.0
+
+**The script will automatically:**
+- Filter by Williams Treaty bounding box (or AOI if --use-aoi)
+- Filter by year range (default 2010-2024)
+- Calculate fire areas in hectares
+- Reproject to WGS84
+- Standardize field names
+- Save to `data/processed/fire/fire_perimeters_YYYY_YYYY.geojson`
+
+**Bounding Box Used:**
 ```
+West:  -80.0°
+East:  -78.0°
+South:  44.0°
+North:  45.0°
+```
+
+### Manual Filtering (Alternative):
 
 **Using Python/GeoPandas:**
 ```python
@@ -165,17 +228,37 @@ data/processed/fire/fire_perimeters_2010_2024.geojson
 
 ### Download Steps:
 
-1. Visit CWFIS Data Mart
+1. Visit CWFIS Data Mart (or CanVec+ portal below)
 2. Navigate to: **Fuel Type Mapping** or **FBP Fuel Types**
-3. Look for Canada-wide fuel type grid
+3. Download Canada-wide or regional fuel type raster
 4. Download format: **GeoTIFF** preferred
-5. Clip to Williams Treaty area
+5. Save to `data/raw/fuel/` directory
 
-### Alternative Source:
+**Alternative Source:**
 CanVec+ Land Cover (includes fuel types)
 - Portal: https://open.canada.ca/data/en/dataset/8ba2aa2a-7bb9-4448-b4d7-f164409fe056
 
-### Processing for Study Area:
+### Processing with Clip Script (Recommended):
+
+```bash
+# Run the automated clip script
+python scripts/filters/clip_fuel_types.py data/raw/fuel/your_downloaded_file.tif
+
+# Include fuel type statistics
+python scripts/filters/clip_fuel_types.py data/raw/fuel/your_downloaded_file.tif
+
+# Skip statistics for faster processing
+python scripts/filters/clip_fuel_types.py data/raw/fuel/your_downloaded_file.tif --skip-stats
+```
+
+**The script will automatically:**
+- Clip raster to Williams Treaty AOI boundary
+- Reproject to WGS84 if needed
+- Calculate fuel type statistics
+- Compress output for web delivery
+- Save to `data/processed/fuel/fuel_types.tif`
+
+### Manual Processing (Alternative):
 
 **Using Python/rasterio:**
 ```python
