@@ -10,11 +10,14 @@ This script orchestrates the entire data download and processing workflow:
 5. Download flood hazard data
 6. Download fire perimeters, fuel types, and DEM
 7. Download Williams Treaty First Nations communities
+8. Process manually downloaded reserve boundaries (if available)
+9. Process manually downloaded fire perimeters (if available)
+10. Process manually downloaded fuel types (if available)
 
-Note: Some layers require manual download (see MANUAL_DOWNLOADS.md)
+Note: Steps 8-10 require manual downloads first (see MANUAL_DOWNLOADS.md)
 
 Usage:
-    python scripts/run_all.py [--skip-ndvi] [--skip-communities] [--skip-fire-fuel-dem]
+    python scripts/run_all.py [--skip-ndvi] [--skip-communities] [--skip-fire-fuel-dem] [--skip-filters]
 """
 
 import sys
@@ -110,6 +113,11 @@ def main():
         '--skip-communities',
         action='store_true',
         help='Skip Williams Treaty communities download'
+    )
+    parser.add_argument(
+        '--skip-filters',
+        action='store_true',
+        help='Skip processing of manually downloaded data (reserves, fires, fuel types)'
     )
     parser.add_argument(
         '--ndvi-example',
@@ -220,6 +228,97 @@ def main():
             logger.info("Skipping Williams Treaty communities download")
         results['communities'] = None
 
+    # Process manually downloaded data (if available)
+    if not args.skip_filters:
+        # Get project root and config
+        config = load_config()
+        project_root = get_project_root()
+
+        # 8. Filter reserve boundaries (if raw data exists)
+        print("\n" + "="*70)
+        print("STEP 8: PROCESS RESERVE BOUNDARIES (if manually downloaded)")
+        print("="*70)
+
+        raw_reserves_dir = project_root / config['directories']['raw'] / 'reserves'
+        if raw_reserves_dir.exists():
+            # Look for common file formats
+            reserve_files = (
+                list(raw_reserves_dir.glob('*.shp')) +
+                list(raw_reserves_dir.glob('*.geojson')) +
+                list(raw_reserves_dir.glob('*.gpkg'))
+            )
+
+            if reserve_files:
+                filter_reserves_script = scripts_dir / "filters" / "filter_reserve_boundaries.py"
+                filter_args = [str(reserve_files[0])]
+                logger.info(f"Found raw reserves data: {reserve_files[0].name}")
+                results['filter_reserves'] = run_script(filter_reserves_script, args=filter_args, logger=logger)
+            else:
+                logger.info("No raw reserves data found - skipping")
+                logger.info("  Download from: https://open.canada.ca/data/en/dataset/522b07b9-78e2-4819-b736-ad9208eb1067")
+                results['filter_reserves'] = None
+        else:
+            logger.info("data/raw/reserves/ directory not found - skipping")
+            logger.info("  Create directory and download reserves data to process")
+            results['filter_reserves'] = None
+
+        # 9. Filter fire perimeters (if raw data exists)
+        print("\n" + "="*70)
+        print("STEP 9: PROCESS FIRE PERIMETERS (if manually downloaded)")
+        print("="*70)
+
+        raw_fire_dir = project_root / config['directories']['raw'] / 'fire'
+        if raw_fire_dir.exists():
+            # Look for common file formats
+            fire_files = (
+                list(raw_fire_dir.glob('*.shp')) +
+                list(raw_fire_dir.glob('*.geojson')) +
+                list(raw_fire_dir.glob('*.gpkg'))
+            )
+
+            if fire_files:
+                filter_fires_script = scripts_dir / "filters" / "filter_fire_perimeters.py"
+                filter_args = [str(fire_files[0])]
+                logger.info(f"Found raw fire data: {fire_files[0].name}")
+                results['filter_fires'] = run_script(filter_fires_script, args=filter_args, logger=logger)
+            else:
+                logger.info("No raw fire data found - skipping")
+                logger.info("  Download from: https://cwfis.cfs.nrcan.gc.ca/datamart")
+                results['filter_fires'] = None
+        else:
+            logger.info("data/raw/fire/ directory not found - skipping")
+            logger.info("  Create directory and download fire data to process")
+            results['filter_fires'] = None
+
+        # 10. Clip fuel types (if raw data exists)
+        print("\n" + "="*70)
+        print("STEP 10: PROCESS FUEL TYPES (if manually downloaded)")
+        print("="*70)
+
+        raw_fuel_dir = project_root / config['directories']['raw'] / 'fuel'
+        if raw_fuel_dir.exists():
+            # Look for GeoTIFF files
+            fuel_files = list(raw_fuel_dir.glob('*.tif')) + list(raw_fuel_dir.glob('*.tiff'))
+
+            if fuel_files:
+                clip_fuel_script = scripts_dir / "filters" / "clip_fuel_types.py"
+                filter_args = [str(fuel_files[0])]
+                logger.info(f"Found raw fuel type data: {fuel_files[0].name}")
+                results['clip_fuel'] = run_script(clip_fuel_script, args=filter_args, logger=logger)
+            else:
+                logger.info("No raw fuel type data found - skipping")
+                logger.info("  Download from: https://cwfis.cfs.nrcan.gc.ca/datamart")
+                results['clip_fuel'] = None
+        else:
+            logger.info("data/raw/fuel/ directory not found - skipping")
+            logger.info("  Create directory and download fuel type data to process")
+            results['clip_fuel'] = None
+    else:
+        logger.info("Skipping filter/clip processing of manually downloaded data")
+        results['filter_reserves'] = None
+        results['filter_fires'] = None
+        results['clip_fuel'] = None
+
     # Print summary
     print("\n" + "="*70)
     print("PIPELINE SUMMARY")
@@ -240,9 +339,31 @@ def main():
     print("NEXT STEPS")
     print("="*70)
     print("1. Review downloaded/generated data in data/ directory")
-    print("2. Follow manual download instructions in raw/*/info.json files")
-    print("3. Place manually downloaded data in appropriate directories")
-    print("4. Proceed to building the interactive map interface")
+
+    # Check if any filter steps were skipped due to missing data
+    if not args.skip_filters:
+        needs_manual = []
+        if results.get('filter_reserves') is None:
+            needs_manual.append("reserve boundaries")
+        if results.get('filter_fires') is None:
+            needs_manual.append("fire perimeters")
+        if results.get('clip_fuel') is None:
+            needs_manual.append("fuel types")
+
+        if needs_manual:
+            print("\n2. Manual downloads required for:")
+            for layer in needs_manual:
+                print(f"   - {layer}")
+            print("   See MANUAL_DOWNLOADS.md for instructions")
+            print("   Then re-run: python scripts/run_all.py")
+    else:
+        print("\n2. To process manually downloaded data:")
+        print("   See MANUAL_DOWNLOADS.md for download instructions")
+        print("   Then re-run without --skip-filters")
+
+    print("\n3. Start the web map:")
+    print("   python web/server.py")
+    print("   Open http://localhost:8000 in your browser")
     print("="*70)
 
 
