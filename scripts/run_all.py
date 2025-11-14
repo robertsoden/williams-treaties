@@ -10,9 +10,10 @@ This script orchestrates the entire data download and processing workflow:
 5. Download flood hazard data
 6. Download fire perimeters, fuel types, and DEM
 7. Download Williams Treaty First Nations communities
+8. Download First Nations reserve boundaries
 
 Usage:
-    python scripts/run_all.py [--skip-ndvi] [--skip-communities] [--skip-fire-fuel-dem]
+    python scripts/run_all.py [--skip-ndvi] [--skip-communities] [--skip-fire-fuel-dem] [--skip-reserves]
 """
 
 import sys
@@ -108,6 +109,11 @@ def main():
         '--skip-communities',
         action='store_true',
         help='Skip Williams Treaty communities download'
+    )
+    parser.add_argument(
+        '--skip-reserves',
+        action='store_true',
+        help='Skip First Nations reserve boundaries download'
     )
     parser.add_argument(
         '--ndvi-example',
@@ -217,6 +223,18 @@ def main():
         if args.skip_communities:
             logger.info("Skipping Williams Treaty communities download")
         results['communities'] = None
+
+    # 8. Download First Nations reserve boundaries
+    if not args.skip_reserves and results['aoi']:
+        print("\n" + "="*70)
+        print("STEP 8: DOWNLOAD FIRST NATIONS RESERVE BOUNDARIES")
+        print("="*70)
+        reserves_script = scripts_dir / "08_download_reserve_boundaries.py"
+        results['reserves'] = run_script(reserves_script, logger=logger)
+    else:
+        if args.skip_reserves:
+            logger.info("Skipping First Nations reserve boundaries download")
+        results['reserves'] = None
 
     # Print summary
     print("\n" + "="*70)

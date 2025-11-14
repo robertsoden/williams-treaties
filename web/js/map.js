@@ -15,6 +15,7 @@ const CONFIG = {
     DATA_URLS: {
         aoi: '/data/boundaries/williams_treaty_aoi.geojson',
         treatyBoundary: '/data/boundaries/williams_treaty.geojson',
+        reserves: '/data/processed/communities/williams_treaty_reserves.geojson',
         ndvi: '/data/processed/ndvi/ndvi_example_2024-06.tif',
         charities: '/data/processed/charities/environmental_organizations.geojson',
         communities: '/data/processed/communities/williams_treaty_communities.geojson',
@@ -88,6 +89,7 @@ console.log('Map zoom:', CONFIG.ZOOM);
 // Layer state
 const layerState = {
     treaty: true,
+    reserves: false,
     charities: false,
     communities: false,
     ndvi: false,
@@ -428,6 +430,82 @@ async function loadCommunities() {
         console.log(`✓ Loaded ${geojson.features.length} Williams Treaty First Nations communities`);
     } catch (error) {
         console.error('Error loading communities:', error);
+    }
+}
+
+// Load First Nations reserve boundaries
+async function loadReserves() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.reserves);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('reserves', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add fill layer for reserves
+        map.addLayer({
+            id: 'reserves-fill',
+            type: 'fill',
+            source: 'reserves',
+            paint: {
+                'fill-color': '#fc8d59',
+                'fill-opacity': 0.3
+            }
+        }, 'treaty-fill');
+
+        // Add outline layer
+        map.addLayer({
+            id: 'reserves-outline',
+            type: 'line',
+            source: 'reserves',
+            paint: {
+                'line-color': '#d73027',
+                'line-width': 2,
+                'line-opacity': 0.8
+            }
+        }, 'treaty-fill');
+
+        // Initially hide the layer
+        map.setLayoutProperty('reserves-fill', 'visibility', 'none');
+        map.setLayoutProperty('reserves-outline', 'visibility', 'none');
+
+        // Add click handler for popups
+        map.on('click', 'reserves-fill', (e) => {
+            const properties = e.features[0].properties;
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(`
+                    <h4>${properties.ENGLISH_NAME || properties.name || 'First Nation Reserve'}</h4>
+                    <p><strong>Reserve:</strong> ${properties.RESERVE_NAME || properties.reserve_name || 'N/A'}</p>
+                    <p><strong>Band:</strong> ${properties.BAND_NAME || properties.band_name || 'N/A'}</p>
+                    ${properties.AREA_SQKM ? `<p><strong>Area:</strong> ${parseFloat(properties.AREA_SQKM).toFixed(2)} km²</p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'reserves-fill', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'reserves-fill', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.reservesLoaded = true;
+
+        console.log(`✓ Loaded ${geojson.features.length} First Nations reserve boundaries`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading reserve boundaries:', error);
+        alert('Could not load reserve boundaries. Error: ' + error.message);
+        return false;
     }
 }
 
@@ -956,6 +1034,16 @@ function toggleLayer(layerId, visible) {
                 }
                 break;
 
+            case 'reserves':
+                if (map.getLayer('reserves-fill')) {
+                    map.setLayoutProperty('reserves-fill', 'visibility', visible ? 'visible' : 'none');
+                    map.setLayoutProperty('reserves-outline', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Reserves ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Reserves layers not found');
+                }
+                break;
+
             case 'charities':
                 if (map.getLayer('charities-circles')) {
                     map.setLayoutProperty('charities-circles', 'visibility', visible ? 'visible' : 'none');
@@ -1152,6 +1240,23 @@ map.on('load', () => {
 document.getElementById('layer-treaty').addEventListener('change', (e) => {
     console.log('Treaty checkbox changed:', e.target.checked);
     toggleLayer('treaty', e.target.checked);
+});
+
+document.getElementById('layer-reserves').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    // If turning on and not loaded yet, load it first
+    if (checked && !map.reservesLoaded) {
+        console.log('First time loading reserve boundaries...');
+        const loaded = await loadReserves();
+        if (!loaded) {
+            // Loading failed, uncheck the box
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('reserves', checked);
 });
 
 document.getElementById('layer-charities').addEventListener('change', (e) => {
