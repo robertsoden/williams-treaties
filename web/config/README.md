@@ -36,8 +36,40 @@ layers:
     data_url: /path/to/data   # URL to the data file
     initial_visibility: false  # Whether layer is visible on load
     status: available          # Status indicator (available, requires_download, etc.)
+    active: true              # If false, layer is hidden from UI but config is retained (default: true)
     lazy_load: true           # If true, only load when user enables layer
 ```
+
+#### Layer Activation
+
+The `active` field controls whether a layer appears in the UI:
+
+- **`active: true`** (default) - Layer appears in the UI and can be loaded by users
+- **`active: false`** - Layer configuration is retained but completely hidden from the UI
+
+Use `active: false` to:
+- Temporarily disable layers without deleting their configuration
+- Keep work-in-progress layer configs
+- Maintain seasonal or conditional layers (e.g., snow cover in winter only)
+- Test configurations before making them public
+- Keep backup layer configs for different data sources
+
+**Example:**
+```yaml
+- id: snow_cover
+  name: Snow Cover (Winter Only)
+  active: false  # Disabled until winter season
+  category: weather
+  type: raster
+  data_url: /data/snow_cover.tif
+  # ... rest of configuration preserved ...
+```
+
+When a layer is inactive:
+- It will not appear in the layer control panel
+- It will not be loaded, even if `initial_visibility: true`
+- The configuration remains in the file for easy re-activation
+- Console will show: `⊘ Layer "Name" is inactive, skipping UI generation`
 
 ## Layer Types
 
@@ -346,9 +378,11 @@ The layer will automatically appear in the UI and be fully functional!
 
 ### Layer Not Appearing
 
+- **Check the `active` field** - Ensure `active` is not set to `false` (or omit it, defaults to `true`)
 - Check that `status: available` is set
 - Verify `data_url` path is correct
 - Check browser console for error messages
+  - Inactive layers will show: `⊘ Layer "Name" is inactive, skipping UI generation`
 - Ensure data file is valid GeoJSON/GeoTIFF
 
 ### Styling Not Applied

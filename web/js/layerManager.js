@@ -28,7 +28,7 @@ class LayerManager {
         controlPanel.innerHTML = '';
         if (header) controlPanel.appendChild(header);
 
-        // Group layers by category
+        // Group layers by category (only active layers)
         const categorizedLayers = {};
         this.config.categories.forEach(cat => {
             categorizedLayers[cat.id] = {
@@ -38,6 +38,12 @@ class LayerManager {
         });
 
         this.config.layers.forEach(layer => {
+            // Skip inactive layers (default to true if not specified)
+            if (layer.active === false) {
+                console.log(`⊘ Layer "${layer.name}" is inactive, skipping UI generation`);
+                return;
+            }
+
             if (categorizedLayers[layer.category]) {
                 categorizedLayers[layer.category].layers.push(layer);
             }

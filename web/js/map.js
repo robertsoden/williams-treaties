@@ -123,8 +123,11 @@ async function initializeLayers() {
         // Generate UI from configuration
         layerManager.generateUI();
 
-        // Load initial layers (non-lazy layers that start visible)
+        // Load initial layers (non-lazy layers that start visible and are active)
         for (const layer of layerConfig.layers) {
+            // Skip inactive layers (default to true if not specified)
+            if (layer.active === false) continue;
+
             if (layer.initial_visibility && !layer.lazy_load) {
                 console.log(`Loading initial layer: ${layer.name}`);
                 await layerManager.loadLayer(layer);

@@ -1,6 +1,12 @@
 # Williams Treaty Territories - Layer Configuration
 # This file defines all map layers and their properties
 
+# Layer activation:
+# - active: true  - Layer appears in UI and can be loaded (default)
+# - active: false - Layer configuration retained but hidden from UI
+#   Use false to temporarily disable layers, keep WIP configs, or maintain
+#   seasonal/conditional layers without deleting their configuration
+
 # Layer categories for organizing the UI
 categories:
   - id: boundaries
@@ -44,6 +50,7 @@ layers:
     data_url: /data/boundaries/williams_treaty.geojson
     initial_visibility: true
     status: available
+    active: true
 
     style:
       fill:
@@ -75,6 +82,7 @@ layers:
     data_url: /data/processed/communities/williams_treaty_reserves.geojson
     initial_visibility: false
     status: available
+    active: true  # Set to false to hide from UI while keeping configuration
     lazy_load: true
 
     style:
@@ -115,6 +123,7 @@ layers:
     data_url: /data/processed/charities/environmental_organizations.geojson
     initial_visibility: false
     status: available
+    active: true  # Set to false to temporarily remove from UI
 
     style:
       circle:
