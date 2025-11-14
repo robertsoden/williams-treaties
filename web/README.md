@@ -59,7 +59,6 @@ Navigate to: **http://localhost:8000**
 ### 🔲 Requires Manual Download
 
 - **Fire Risk Zones** - See `data/raw/fire/*.json` for download instructions
-- **Flood Plains** - See `data/raw/flood/*.json` for download instructions
 
 ## Map Controls
 
@@ -69,7 +68,6 @@ Navigate to: **http://localhost:8000**
 - **Boundaries**: Toggle study area boundary
 - **Vegetation**: Toggle NDVI layer and view legend
 - **Fire Hazard**: (Disabled until data is downloaded)
-- **Flood Hazard**: (Disabled until data is downloaded)
 
 ### Map Navigation
 

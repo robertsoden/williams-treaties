@@ -5,7 +5,6 @@ Interactive map browser for environmental planning and climate change adaptation
 - Land use and land cover
 - NDVI (vegetation health monitoring)
 - Fire hazard assessment
-- Flood hazard mapping
 
 ## Geographic Scope
 Williams Treaty Territories (1923) - covers parts of:
@@ -114,24 +113,8 @@ First Nations: Alderville, Curve Lake, Hiawatha, Mississaugas of Scugog Island, 
 
 ---
 
-## 4. Flood Hazard Data
-
-### Ontario Flood Plain Mapping
-- **Source**: Ontario Ministry of Natural Resources and Forestry
-- **URL**: https://geohub.lio.gov.on.ca/
-- **Coverage**: Various Conservation Authorities
-- **Data Types**:
-  - 100-year flood lines
-  - Regulatory flood plains
-  - Flood vulnerable areas
-- **License**: Ontario Open Data License
-
 ### Conservation Authority Data
 Relevant authorities for Williams Treaty area:
-- **Kawartha Conservation**: Flood mapping, watershed boundaries
-- **Otonabee Region Conservation Authority**: Flood risk areas
-- **Lake Simcoe Region Conservation Authority**: Flood plains
-- **Central Lake Ontario Conservation Authority**: Coastal flooding
 - **Ganaraska Region Conservation Authority**: Watershed data
 
 ### Digital Elevation Model (DEM)
@@ -139,7 +122,6 @@ Relevant authorities for Williams Treaty area:
 - **Product**: Canadian Digital Elevation Model (CDEM)
 - **URL**: https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333
 - **Resolution**: 20m (best available for Ontario)
-- **Use Case**: Slope analysis, flow accumulation, flood modeling
 - **License**: Open Government License - Canada
 
 ### Provincial (Stream) Network (PSN)
@@ -156,7 +138,6 @@ Relevant authorities for Williams Treaty area:
   - Historical precipitation
   - Climate normals (1981-2010, 1991-2020)
   - Extreme weather events
-- **Use Case**: Flood risk modeling, climate trends
 - **License**: Environment Canada Data License
 
 ---
@@ -237,6 +218,5 @@ Relevant authorities for Williams Treaty area:
 
 - Most datasets require clipping to Williams Treaty area
 - NDVI calculation requires preprocessing of satellite imagery
-- Fire and flood risk may need composite indicators from multiple datasets
 - Consider temporal resolution for time-series analysis
 - Coordinate system: NAD83 / UTM Zone 17N (EPSG:26917) typical for this region

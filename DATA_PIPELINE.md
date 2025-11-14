@@ -26,7 +26,6 @@ python scripts/01_download_aoi.py
 python scripts/02_download_landcover.py
 python scripts/03_process_ndvi.py --example
 python scripts/04_download_fire_data.py
-python scripts/05_download_flood_data.py --all
 ```
 
 ---
@@ -180,72 +179,6 @@ python scripts/04_download_fire_data.py --historical-years 20
 
 ---
 
-### Script 5: Download Flood Hazard Data
-
-```bash
-# Download flood plain data
-python scripts/05_download_flood_data.py
-
-# Include DEM information
-python scripts/05_download_flood_data.py --include-dem
-
-# Include climate data information
-python scripts/05_download_flood_data.py --include-climate
-
-# Include everything
-python scripts/05_download_flood_data.py --all
-```
-
-**What it does:**
-- Provides Ontario flood plain mapping sources
-- Documents Conservation Authority data availability
-- Provides DEM download instructions
-- Documents hydrological network data
-- Provides climate/precipitation data sources
-
-**Data Sources:**
-
-1. **Ontario Flood Plain Mapping**
-   - 100-year flood regulation limits
-   - Flood vulnerable areas
-   - Portal: https://geohub.lio.gov.on.ca/
-
-2. **Conservation Authorities** (contact for detailed data)
-   - Kawartha Conservation: https://www.kawarthaconservation.com/
-   - ORCA (Otonabee): https://www.otonabee.com/
-   - LSRCA (Lake Simcoe): https://www.lsrca.on.ca/
-   - CLOCA (Central Lake Ontario): https://www.cloca.com/
-   - GRCA (Ganaraska): https://www.grca.on.ca/
-
-3. **Digital Elevation Model (CDEM)**
-   - 20m resolution
-   - URL: https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333
-   - Use for: slope analysis, flow accumulation, watershed delineation
-
-4. **Hydrological Network**
-   - Ontario Hydro Network (OHN): streams, rivers, lakes
-   - Provincial Stream Network (PSN)
-   - National Hydro Network (NHN)
-
-5. **Climate Data**
-   - Environment Canada: https://climate.weather.gc.ca/
-   - ClimateData.ca: https://climatedata.ca/
-   - Climate Atlas: https://climateatlas.ca/
-
-**Output:**
-- `data/raw/flood/*.json` - Multiple info files with download instructions
-- Connection details for Conservation Authorities
-- Data access information
-
-**Manual Steps Required:**
-1. Download flood plain data from Ontario GeoHub
-2. Contact Conservation Authorities for detailed flood mapping
-3. Download DEM tiles covering the AOI
-4. Download hydrological network shapefiles
-5. Access climate data as needed
-
----
-
 ## Data Directory Structure
 
 After running all scripts, your data directory will look like this:
@@ -262,8 +195,6 @@ data/
 │   │   ├── cwfis_wms_info.json
 │   │   ├── ontario_fire_data_info.json
 │   │   └── nbac_info.json
-│   └── flood/
-│       ├── ontario_floodplain_info.json
 │       ├── conservation_authorities_info.json
 │       ├── hydrological_network_info.json
 │       ├── dem_info.json
@@ -273,7 +204,6 @@ data/
     ├── ndvi/
     │   └── ndvi_YYYY-MM_composite.tif
     ├── fire/
-    └── flood/
 ```
 
 ---

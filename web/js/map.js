@@ -20,8 +20,13 @@ const CONFIG = {
         charities: '/data/processed/charities/environmental_organizations.geojson',
         communities: '/data/processed/communities/williams_treaty_communities.geojson',
         elevation: '/data/processed/dem/elevation.tif',
-        firePerimeters: '/data/processed/fire/fire_perimeters_2010_2024.geojson',
-        fuelType: '/data/processed/fuel/fuel_types.tif'
+        firePerimeters: '/data/processed/fire/fire_perimeters_1976_2024.geojson',
+        fuelType: '/data/processed/fuel/fuel_types.tif',
+        infrastructure: '/data/processed/infrastructure/infrastructure_projects.geojson',
+        waterAdvisories: '/data/processed/water/water_advisories.geojson',
+        cwb: '/data/processed/cwb/community_wellbeing.geojson',
+        cwbFirstNations: '/data/processed/cwb/community_wellbeing_first_nations.geojson',
+        csicpFunding: '/data/processed/csicp/csicp_funding.geojson'
     },
 
     // Basemap styles (use mapbox:// protocol for Mapbox GL JS)
@@ -96,7 +101,10 @@ const layerState = {
     elevation: false,
     fire: false,
     fuelType: false,
-    flood: false
+    infrastructure: false,
+    waterAdvisories: false,
+    cwb: false,
+    csicpFunding: false
 };
 
 // Show loading indicator
@@ -679,13 +687,10 @@ async function loadElevationWithCanvas(georaster) {
     const imageData = ctx.createImageData(canvas.width, canvas.height);
 
     // Render each pixel
-    // IMPORTANT: GeoTIFF Y-axis often starts from bottom (south), but canvas starts from top
-    // We need to flip vertically to match Mapbox coordinate system
+    // Georaster y=0 corresponds to north (ymax), which matches canvas top
     for (let y = 0; y < georaster.height; y++) {
         for (let x = 0; x < georaster.width; x++) {
-            // Flip Y-axis: read from bottom of georaster for top of canvas
-            const geoY = georaster.height - 1 - y;
-            const value = georaster.values[0][geoY][x];
+            const value = georaster.values[0][y][x];
             const color = getElevationColor(value);
             const idx = (y * canvas.width + x) * 4;
             imageData.data[idx] = color[0];     // R
@@ -723,6 +728,21 @@ async function loadElevationWithCanvas(georaster) {
         [xmin, ymin] = [ymin, xmin];
         [xmax, ymax] = [ymax, xmax];
     }
+
+    // Calculate pixel size
+    const pixelWidth = (xmax - xmin) / georaster.width;
+    const pixelHeight = (ymax - ymin) / georaster.height;
+
+    console.log('Pixel size:', { pixelWidth, pixelHeight });
+    console.log('Original bounds:', { xmin, xmax, ymin, ymax });
+
+    // Shift entire image south to correct alignment
+    // 1.4km ≈ 0.0126 degrees of latitude, which is about 45.36 pixels at this resolution
+    const latShift = pixelHeight * 45.36;
+    ymin -= latShift;
+    ymax -= latShift;
+
+    console.log('Adjusted bounds (shifted south by ~1.4km):', { xmin, xmax, ymin, ymax, shift_km: latShift * 111 });
 
     const coordinates = [
         [xmin, ymax], // top-left
@@ -803,6 +823,7 @@ async function loadElevation() {
 async function loadFirePerimeters() {
     try {
         showLoading();
+        console.log('Loading fire perimeters from:', CONFIG.DATA_URLS.firePerimeters);
 
         const response = await fetch(CONFIG.DATA_URLS.firePerimeters);
         if (!response.ok) {
@@ -810,13 +831,14 @@ async function loadFirePerimeters() {
         }
 
         const geojson = await response.json();
+        console.log(`Fire perimeters GeoJSON loaded: ${geojson.features.length} features`);
 
         map.addSource('fire-perimeters', {
             type: 'geojson',
             data: geojson
         });
 
-        // Add fill layer for fire perimeters
+        // Add fill layer for fire perimeters (add on top, not before treaty-fill)
         map.addLayer({
             id: 'fire-fill',
             type: 'fill',
@@ -825,7 +847,7 @@ async function loadFirePerimeters() {
                 'fill-color': '#d73027',
                 'fill-opacity': 0.4
             }
-        }, 'treaty-fill');
+        });
 
         // Add outline layer
         map.addLayer({
@@ -837,22 +859,30 @@ async function loadFirePerimeters() {
                 'line-width': 1,
                 'line-opacity': 0.8
             }
-        }, 'treaty-fill');
+        });
+
+        console.log('Fire layers added to map');
 
         // Initially hide the layer
         map.setLayoutProperty('fire-fill', 'visibility', 'none');
         map.setLayoutProperty('fire-outline', 'visibility', 'none');
+        console.log('Fire layers set to hidden initially');
 
         // Add click handler for popups
         map.on('click', 'fire-fill', (e) => {
             const properties = e.features[0].properties;
+            const year = properties.year || properties.YEAR || properties.EXERCICE || properties.AN_ORIGINE || 'Unknown';
+            const area_ha = properties.area ? (properties.area / 10000).toFixed(2) :
+                           properties.SUPERFICIE ? properties.SUPERFICIE.toFixed(2) : 'N/A';
+
             new mapboxgl.Popup()
                 .setLngLat(e.lngLat)
                 .setHTML(`
                     <h4>Fire Perimeter</h4>
-                    <p><strong>Year:</strong> ${properties.year || properties.YEAR || 'Unknown'}</p>
-                    <p><strong>Area:</strong> ${properties.area ? (properties.area / 10000).toFixed(2) + ' ha' : 'N/A'}</p>
+                    <p><strong>Year:</strong> ${year}</p>
+                    <p><strong>Area:</strong> ${area_ha} ha</p>
                     ${properties.FIRE_ID ? `<p><strong>Fire ID:</strong> ${properties.FIRE_ID}</p>` : ''}
+                    ${properties.ORIGINE ? `<p><strong>Origin:</strong> ${properties.ORIGINE}</p>` : ''}
                 `)
                 .addTo(map);
         });
@@ -865,10 +895,17 @@ async function loadFirePerimeters() {
             map.getCanvas().style.cursor = '';
         });
 
+        // Store bounds for zooming to fires later
+        map.firePerimetersBounds = [
+            [-78.7073861, 45.805734],   // southwest
+            [-76.91731653, 46.38118623]  // northeast
+        ];
+
         map.fireLoaded = true;
 
         hideLoading();
         console.log(`✓ Loaded ${geojson.features.length} fire perimeters`);
+        console.log(`Fire perimeters bounds: SW(-78.71, 45.81) to NE(-76.92, 46.38)`);
 
         return true;
 
@@ -1017,6 +1054,315 @@ async function loadFuelType() {
     }
 }
 
+// Load infrastructure projects
+async function loadInfrastructure() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.infrastructure);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('infrastructure', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add circle markers for infrastructure projects
+        map.addLayer({
+            id: 'infrastructure-circles',
+            type: 'circle',
+            source: 'infrastructure',
+            paint: {
+                'circle-radius': 5,
+                'circle-color': [
+                    'match',
+                    ['get', 'category'],
+                    'Housing', '#e41a1c',
+                    'Water and Wastewater', '#377eb8',
+                    'Solid Waste Management', '#4daf4a',
+                    'Fire Protection', '#ff7f00',
+                    'Health', '#984ea3',
+                    '#999999' // default
+                ],
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.8
+            }
+        });
+
+        // Initially hide the layer
+        map.setLayoutProperty('infrastructure-circles', 'visibility', 'none');
+
+        // Add click handler
+        map.on('click', 'infrastructure-circles', (e) => {
+            const properties = e.features[0].properties;
+            const coordinates = e.features[0].geometry.coordinates.slice();
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <h4>${properties.project_name || 'Infrastructure Project'}</h4>
+                    <p><strong>Community:</strong> ${properties.community}</p>
+                    <p><strong>Category:</strong> ${properties.category || 'N/A'}</p>
+                    <p><strong>Status:</strong> ${properties.status || 'N/A'}</p>
+                    ${properties.description ? `<p><strong>Description:</strong> ${properties.description.substring(0, 200)}...</p>` : ''}
+                    ${properties.investment && properties.investment !== 'Not Available' ? `<p><strong>Investment:</strong> ${properties.investment}</p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'infrastructure-circles', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'infrastructure-circles', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.infrastructureLoaded = true;
+        console.log(`✓ Loaded ${geojson.features.length} infrastructure projects`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading infrastructure:', error);
+        showNotification('Could not load infrastructure data: ' + error.message, 'error', 7000);
+        return false;
+    }
+}
+
+// Load water advisories
+async function loadWaterAdvisories() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.waterAdvisories);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('water-advisories', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add circle markers for water advisories
+        map.addLayer({
+            id: 'water-advisories-circles',
+            type: 'circle',
+            source: 'water-advisories',
+            paint: {
+                'circle-radius': 7,
+                'circle-color': [
+                    'case',
+                    ['get', 'is_active'], '#d73027',  // Red for active
+                    '#91cf60'  // Green for lifted
+                ],
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.9
+            }
+        });
+
+        // Initially hide the layer
+        map.setLayoutProperty('water-advisories-circles', 'visibility', 'none');
+
+        // Add click handler
+        map.on('click', 'water-advisories-circles', (e) => {
+            const properties = e.features[0].properties;
+            const coordinates = e.features[0].geometry.coordinates.slice();
+
+            const status = properties.is_active ? 'ACTIVE' : 'Lifted';
+            const statusColor = properties.is_active ? '#d73027' : '#91cf60';
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <h4>${properties.water_system || 'Water System'}</h4>
+                    <p><strong>First Nation:</strong> ${properties.first_nation}</p>
+                    <p><strong>Status:</strong> <span style="color:${statusColor};font-weight:bold">${status}</span></p>
+                    <p><strong>Type:</strong> ${properties.advisory_type}</p>
+                    <p><strong>Date Set:</strong> ${properties.date_set || 'N/A'}</p>
+                    ${properties.date_lifted ? `<p><strong>Date Lifted:</strong> ${properties.date_lifted}</p>` : ''}
+                    ${properties.duration_days ? `<p><strong>Duration:</strong> ${properties.duration_days} days</p>` : ''}
+                    ${properties.corrective_measure ? `<p><strong>Corrective Measure:</strong> ${properties.corrective_measure}</p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'water-advisories-circles', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'water-advisories-circles', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.waterAdvisoriesLoaded = true;
+        console.log(`✓ Loaded ${geojson.features.length} water advisories`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading water advisories:', error);
+        showNotification('Could not load water advisory data: ' + error.message, 'error', 7000);
+        return false;
+    }
+}
+
+// Load Community Well-Being data
+async function loadCWB() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.cwb);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('cwb', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add fill layer for CWB polygons with choropleth coloring
+        map.addLayer({
+            id: 'cwb-fill',
+            type: 'fill',
+            source: 'cwb',
+            paint: {
+                'fill-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'cwb_score'],
+                    60, '#d73027',  // Low CWB - red
+                    70, '#fee08b',  // Medium - yellow
+                    80, '#91cf60'   // High CWB - green
+                ],
+                'fill-opacity': 0.6
+            }
+        }, 'treaty-fill');
+
+        // Add outline layer
+        map.addLayer({
+            id: 'cwb-outline',
+            type: 'line',
+            source: 'cwb',
+            paint: {
+                'line-color': '#333',
+                'line-width': 1.5,
+                'line-opacity': 0.8
+            }
+        }, 'treaty-fill');
+
+        // Initially hide the layers
+        map.setLayoutProperty('cwb-fill', 'visibility', 'none');
+        map.setLayoutProperty('cwb-outline', 'visibility', 'none');
+
+        // Add click handler
+        map.on('click', 'cwb-fill', (e) => {
+            const properties = e.features[0].properties;
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(`
+                    <h4>${properties.name}</h4>
+                    <p><strong>Community Well-Being Score:</strong> ${properties.cwb_score || 'N/A'}</p>
+                    <p><strong>Population:</strong> ${properties.population || 'N/A'}</p>
+                    ${properties.income_score ? `<p>Income: ${properties.income_score}</p>` : ''}
+                    ${properties.education_score ? `<p>Education: ${properties.education_score}</p>` : ''}
+                    ${properties.housing_score ? `<p>Housing: ${properties.housing_score}</p>` : ''}
+                    ${properties.labour_score ? `<p>Labour: ${properties.labour_score}</p>` : ''}
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'cwb-fill', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'cwb-fill', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.cwbLoaded = true;
+        console.log(`✓ Loaded ${geojson.features.length} communities with CWB data`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading CWB data:', error);
+        showNotification('Could not load Community Well-Being data: ' + error.message, 'error', 7000);
+        return false;
+    }
+}
+
+// Load CSICP funding data
+async function loadCSICPFunding() {
+    try {
+        const response = await fetch(CONFIG.DATA_URLS.csicpFunding);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+
+        map.addSource('csicp', {
+            type: 'geojson',
+            data: geojson
+        });
+
+        // Add circle markers for CSICP projects
+        map.addLayer({
+            id: 'csicp-circles',
+            type: 'circle',
+            source: 'csicp',
+            paint: {
+                'circle-radius': 8,
+                'circle-color': '#9e0142',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.9
+            }
+        });
+
+        // Initially hide the layer
+        map.setLayoutProperty('csicp-circles', 'visibility', 'none');
+
+        // Add click handler
+        map.on('click', 'csicp-circles', (e) => {
+            const properties = e.features[0].properties;
+            const coordinates = e.features[0].geometry.coordinates.slice();
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <h4>${properties.project_name}</h4>
+                    <p><strong>Group:</strong> ${properties.group_name}</p>
+                    <p><strong>Community:</strong> ${properties.matched_community}</p>
+                    <p><strong>Type:</strong> ${properties.project_type}</p>
+                    <p><strong>Funding:</strong> $${parseInt(properties.funding).toLocaleString()}</p>
+                `)
+                .addTo(map);
+        });
+
+        // Change cursor on hover
+        map.on('mouseenter', 'csicp-circles', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'csicp-circles', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.csicpLoaded = true;
+        console.log(`✓ Loaded ${geojson.features.length} CSICP funding projects`);
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error loading CSICP funding:', error);
+        showNotification('Could not load CSICP funding data: ' + error.message, 'error', 7000);
+        return false;
+    }
+}
+
 // Toggle layer visibility
 function toggleLayer(layerId, visible) {
     console.log(`toggleLayer called: ${layerId} = ${visible}`);
@@ -1095,6 +1441,15 @@ function toggleLayer(layerId, visible) {
                     map.setLayoutProperty('fire-fill', 'visibility', visible ? 'visible' : 'none');
                     map.setLayoutProperty('fire-outline', 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ Fire perimeters ${visible ? 'shown' : 'hidden'}`);
+
+                    // Zoom to fire perimeters when shown
+                    if (visible && map.firePerimetersBounds) {
+                        map.fitBounds(map.firePerimetersBounds, {
+                            padding: 50,
+                            duration: 1000
+                        });
+                        console.log('Zooming to fire perimeters extent');
+                    }
                 } else {
                     console.warn('Fire layers not found');
                 }
@@ -1114,6 +1469,43 @@ function toggleLayer(layerId, visible) {
                 const fuelLegend = document.getElementById('fuel-legend');
                 if (fuelLegend) {
                     fuelLegend.style.display = visible ? 'block' : 'none';
+                }
+                break;
+
+            case 'infrastructure':
+                if (map.getLayer('infrastructure-circles')) {
+                    map.setLayoutProperty('infrastructure-circles', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Infrastructure ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Infrastructure layer not found');
+                }
+                break;
+
+            case 'waterAdvisories':
+                if (map.getLayer('water-advisories-circles')) {
+                    map.setLayoutProperty('water-advisories-circles', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Water advisories ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Water advisories layer not found');
+                }
+                break;
+
+            case 'cwb':
+                if (map.getLayer('cwb-fill') && map.getLayer('cwb-outline')) {
+                    map.setLayoutProperty('cwb-fill', 'visibility', visible ? 'visible' : 'none');
+                    map.setLayoutProperty('cwb-outline', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Community Well-Being ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('CWB layers not found');
+                }
+                break;
+
+            case 'csicpFunding':
+                if (map.getLayer('csicp-circles')) {
+                    map.setLayoutProperty('csicp-circles', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ CSICP funding ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('CSICP funding layer not found');
                 }
                 break;
         }
@@ -1195,6 +1587,42 @@ function changeBasemap(style) {
             loadFuelType().then(() => {
                 if (layerState.fuelType) {
                     toggleLayer('fuelType', true);
+                }
+            });
+        }
+
+        // Reload infrastructure if it was loaded before
+        if (map.infrastructureLoaded) {
+            loadInfrastructure().then(() => {
+                if (layerState.infrastructure) {
+                    toggleLayer('infrastructure', true);
+                }
+            });
+        }
+
+        // Reload water advisories if they were loaded before
+        if (map.waterAdvisoriesLoaded) {
+            loadWaterAdvisories().then(() => {
+                if (layerState.waterAdvisories) {
+                    toggleLayer('waterAdvisories', true);
+                }
+            });
+        }
+
+        // Reload CWB if it was loaded before
+        if (map.cwbLoaded) {
+            loadCWB().then(() => {
+                if (layerState.cwb) {
+                    toggleLayer('cwb', true);
+                }
+            });
+        }
+
+        // Reload CSICP funding if it was loaded before
+        if (map.csicpLoaded) {
+            loadCSICPFunding().then(() => {
+                if (layerState.csicpFunding) {
+                    toggleLayer('csicpFunding', true);
                 }
             });
         }
@@ -1343,6 +1771,66 @@ document.getElementById('layer-fuel').addEventListener('change', async (e) => {
     }
 
     toggleLayer('fuelType', checked);
+});
+
+document.getElementById('layer-infrastructure').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    if (checked && !map.infrastructureLoaded) {
+        console.log('First time loading infrastructure...');
+        const loaded = await loadInfrastructure();
+        if (!loaded) {
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('infrastructure', checked);
+});
+
+document.getElementById('layer-water-advisories').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    if (checked && !map.waterAdvisoriesLoaded) {
+        console.log('First time loading water advisories...');
+        const loaded = await loadWaterAdvisories();
+        if (!loaded) {
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('waterAdvisories', checked);
+});
+
+document.getElementById('layer-cwb').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    if (checked && !map.cwbLoaded) {
+        console.log('First time loading Community Well-Being data...');
+        const loaded = await loadCWB();
+        if (!loaded) {
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('cwb', checked);
+});
+
+document.getElementById('layer-csicp').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+
+    if (checked && !map.csicpLoaded) {
+        console.log('First time loading CSICP funding...');
+        const loaded = await loadCSICPFunding();
+        if (!loaded) {
+            e.target.checked = false;
+            return;
+        }
+    }
+
+    toggleLayer('csicpFunding', checked);
 });
 
 // Basemap switcher

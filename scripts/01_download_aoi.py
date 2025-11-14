@@ -168,7 +168,6 @@ def main():
     print("2. Run land cover download: python scripts/02_download_landcover.py")
     print("3. Run NDVI processing: python scripts/03_process_ndvi.py")
     print("4. Run fire data download: python scripts/04_download_fire_data.py")
-    print("5. Run flood data download: python scripts/05_download_flood_data.py")
 
 
 if __name__ == "__main__":

@@ -11,14 +11,16 @@ This project provides an interactive web-based map interface to explore environm
 1. **Land Use and Land Cover** - Current and historical land classification
 2. **NDVI (Vegetation Health)** - Satellite-derived vegetation indices for monitoring ecosystem health
 3. **Fire Hazard** - Historical fire perimeters and wildland fuel type classifications
-4. **Flood Hazard** - Flood plain mapping and flood risk zones
-5. **Elevation (DEM)** - Digital elevation model for terrain analysis
-6. **Communities** - Williams Treaty First Nations community locations
-7. **Environmental Organizations** - Local charities and conservation groups
+4. **Elevation (DEM)** - Digital elevation model for terrain analysis
+5. **Communities** - Williams Treaty First Nations community locations
+6. **Environmental Organizations** - Local charities and conservation groups
+7. **Infrastructure** - Federal infrastructure projects (housing, water, etc.)
+8. **Water Advisories** - Drinking water advisory status
+9. **Community Well-Being** - Census subdivision well-being scores
 
 ## Williams Treaty Territories
 
-The Williams Treaties (1923) cover territories of seven First Nations in south-central Ontario:
+The Williams Treaties (1923) were signed by seven First Nations in south-central Ontario:
 - Alderville First Nation
 - Curve Lake First Nation
 - Hiawatha First Nation
@@ -26,6 +28,8 @@ The Williams Treaties (1923) cover territories of seven First Nations in south-c
 - Chippewas of Beausoleil First Nation
 - Chippewas of Georgina Island First Nation
 - Chippewas of Rama First Nation
+
+**Project Scope:** This project encompasses **all Indigenous peoples and communities within the Williams Treaty territory boundaries**, not solely the seven treaty signatories. This includes other First Nations with reserves in the area (such as Moose Deer Point First Nation, Wahta Mohawk Territory, Nipissing First Nation, etc.), Métis communities, and all Indigenous peoples living within these territorial boundaries.
 
 The treaty area encompasses parts of:
 - Simcoe County
@@ -58,9 +62,11 @@ python scripts/01_download_aoi.py                      # Define study area
 python scripts/02_download_landcover.py                # Land cover data
 python scripts/03_process_ndvi.py --example            # Vegetation indices
 python scripts/04_download_fire_data.py                # Fire hazard data
-python scripts/05_download_flood_data.py               # Flood hazard data
 python scripts/06_download_fire_fuel_dem.py            # Fire perimeters, fuel types, DEM
 python scripts/07_download_williams_treaty_communities.py  # First Nations communities
+python scripts/09_process_infrastructure_projects.py   # Infrastructure projects
+python scripts/10_process_water_advisories.py          # Water advisories
+python scripts/11_process_cwb_data.py                  # Community Well-Being data
 
 # Or create demo data (faster for testing)
 python scripts/create_demo_fire_fuel.py                # Demo fire/fuel data
@@ -84,16 +90,20 @@ See [web/README.md](./web/README.md) for detailed web application documentation.
 
 **Features:**
 - Full-screen interactive map with Mapbox basemaps
-- 8 interactive data layers with toggle controls:
+- 12+ interactive data layers with toggle controls:
   - Williams Treaty boundaries
+  - Reserve boundaries (21 reserves)
   - First Nations communities (7 communities)
   - Environmental organizations/charities
   - NDVI vegetation health monitoring
   - Digital elevation model (DEM)
-  - Historical fire perimeters (2010-2024)
+  - Historical fire perimeters (1976-2024, 37 fires)
   - Wildland fuel type classifications
-  - (Flood hazard layers coming soon)
-- Color-coded legends for each layer
+  - Infrastructure projects (445 projects)
+  - Water advisories (3 advisories, 1 active)
+  - Community Well-Being (122 communities)
+  - Cultural infrastructure funding (CSICP)
+- Color-coded legends and choropleth maps
 - Popup information on click
 - Responsive design for desktop and mobile
 - Graceful error handling and user notifications
@@ -119,9 +129,12 @@ williams-treaties/
 │   ├── 02_download_landcover.py
 │   ├── 03_process_ndvi.py
 │   ├── 04_download_fire_data.py
-│   ├── 05_download_flood_data.py
 │   ├── 06_download_fire_fuel_dem.py        # Fire perimeters, fuel types, DEM
 │   ├── 07_download_williams_treaty_communities.py  # First Nations communities
+│   ├── 09_process_infrastructure_projects.py
+│   ├── 10_process_water_advisories.py
+│   ├── 11_process_cwb_data.py
+│   ├── 12_process_csicp_funding.py
 │   ├── create_demo_fire_fuel.py            # Demo data generator
 │   └── run_all.py          # Run complete pipeline
 ├── web/                     # Interactive map application
@@ -172,11 +185,9 @@ williams-treaties/
 
 **Next Steps:**
 - 🔲 Add time-series analysis tools (NDVI trends over time)
-- 🔲 Obtain real fire perimeter data (NBAC/CWFIS)
-- 🔲 Download actual fuel type mapping (requires manual steps)
-- 🔲 Implement flood hazard layers
 - 🔲 Add data export functionality (GeoJSON, CSV)
 - 🔲 Layer opacity and ordering controls
+- 🔲 Add layer legends for infrastructure and water advisories
 - 🔲 Deploy to web hosting (GitHub Pages or cloud)
 - 🔲 Mobile app considerations
 

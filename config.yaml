@@ -56,8 +56,6 @@ datasets:
   fire:
     historical_years: 30  # Years of historical data to retrieve
 
-  flood:
-    return_periods: [100]  # Year return periods (e.g., 100-year flood)
 
 # Download settings
 download:

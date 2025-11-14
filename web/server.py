@@ -86,7 +86,6 @@ def list_layers():
         'boundaries': [],
         'ndvi': [],
         'fire': [],
-        'flood': []
     }
 
     # Check for boundary files

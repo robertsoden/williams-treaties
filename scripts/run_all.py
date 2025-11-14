@@ -7,12 +7,11 @@ This script orchestrates the entire data download and processing workflow:
 2. Download land cover data
 3. Process NDVI from satellite imagery
 4. Download fire hazard data
-5. Download flood hazard data
-6. Download fire perimeters, fuel types, and DEM
-7. Download Williams Treaty First Nations communities
-8. Process manually downloaded reserve boundaries (if available)
-9. Process manually downloaded fire perimeters (if available)
-10. Process manually downloaded fuel types (if available)
+5. Download fire perimeters, fuel types, and DEM
+6. Download Williams Treaty First Nations communities
+7. Process manually downloaded reserve boundaries (if available)
+8. Process manually downloaded fire perimeters (if available)
+9. Process manually downloaded fuel types (if available)
 
 Note: Steps 8-10 require manual downloads first (see MANUAL_DOWNLOADS.md)
 
@@ -100,9 +99,6 @@ def main():
         help='Skip fire data download'
     )
     parser.add_argument(
-        '--skip-flood',
-        action='store_true',
-        help='Skip flood data download'
     )
     parser.add_argument(
         '--skip-fire-fuel-dem',
@@ -189,23 +185,10 @@ def main():
             logger.info("Skipping fire data download")
         results['fire'] = None
 
-    # 5. Download flood data
-    if not args.skip_flood and results['aoi']:
-        print("\n" + "="*70)
-        print("STEP 5: DOWNLOAD FLOOD HAZARD DATA")
-        print("="*70)
-        flood_script = scripts_dir / "05_download_flood_data.py"
-        flood_args = ['--all']
-        results['flood'] = run_script(flood_script, args=flood_args, logger=logger)
-    else:
-        if args.skip_flood:
-            logger.info("Skipping flood data download")
-        results['flood'] = None
-
-    # 6. Download fire perimeters, fuel types, and DEM
+    # 5. Download fire perimeters, fuel types, and DEM
     if not args.skip_fire_fuel_dem and results['aoi']:
         print("\n" + "="*70)
-        print("STEP 6: DOWNLOAD FIRE PERIMETERS, FUEL TYPES, AND DEM")
+        print("STEP 5: DOWNLOAD FIRE PERIMETERS, FUEL TYPES, AND DEM")
         print("="*70)
         fire_fuel_dem_script = scripts_dir / "06_download_fire_fuel_dem.py"
         # Use --skip-fires and --skip-fuel for faster setup, as they may require manual download
