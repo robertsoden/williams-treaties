@@ -67,7 +67,16 @@ def serve_data(filepath):
     file_ext = file_path.suffix.lower()
     mime_type = mime_types.get(file_ext, 'application/octet-stream')
 
-    return send_file(file_path, mimetype=mime_type)
+    # Create response
+    response = send_file(file_path, mimetype=mime_type)
+
+    # Disable caching for .tif files to ensure elevation updates are reflected
+    if file_ext in ['.tif', '.tiff']:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+
+    return response
 
 
 @app.route('/api/layers')

@@ -230,6 +230,9 @@ async function loadTreatyBoundary() {
         const response = await fetch(CONFIG.DATA_URLS.treatyBoundary);
         const geojson = await response.json();
 
+        // Log treaty boundary for comparison
+        console.log('Treaty boundary loaded, features:', geojson.features.length);
+
         map.addSource('treaty-boundary', {
             type: 'geojson',
             data: geojson
@@ -442,6 +445,15 @@ function getNDVIColor(value) {
 // Custom canvas-based renderer as fallback
 async function loadNDVIWithCanvas(georaster) {
     console.log('Using custom canvas renderer for NDVI');
+    console.log('NDVI georaster bounds:', {
+        xmin: georaster.xmin,
+        xmax: georaster.xmax,
+        ymin: georaster.ymin,
+        ymax: georaster.ymax,
+        width: georaster.width,
+        height: georaster.height,
+        projection: georaster.projection
+    });
 
     const canvas = document.createElement('canvas');
     canvas.width = georaster.width;
@@ -464,19 +476,32 @@ async function loadNDVIWithCanvas(georaster) {
 
     ctx.putImageData(imageData, 0, 0);
 
-    // Get bounds from georaster
-    const bounds = [
-        [georaster.xmin, georaster.ymin],
-        [georaster.xmax, georaster.ymax]
+    // Add as image source
+    // Mapbox GL JS expects coordinates in [longitude, latitude] order
+    // Order: top-left, top-right, bottom-right, bottom-left
+
+    // Check if georaster has lat/lon swapped (common with EPSG:4326 GeoTIFFs)
+    let xmin = georaster.xmin;
+    let xmax = georaster.xmax;
+    let ymin = georaster.ymin;
+    let ymax = georaster.ymax;
+
+    // Detect potential lat/lon swap
+    if (Math.abs(xmin) < 90 && Math.abs(xmax) < 90 &&
+        Math.abs(ymin) > 90 && Math.abs(ymax) > 90) {
+        console.warn('Detected potential lat/lon swap in NDVI georaster, swapping coordinates');
+        [xmin, ymin] = [ymin, xmin];
+        [xmax, ymax] = [ymax, xmax];
+    }
+
+    const coordinates = [
+        [xmin, ymax], // top-left
+        [xmax, ymax], // top-right
+        [xmax, ymin], // bottom-right
+        [xmin, ymin]  // bottom-left
     ];
 
-    // Add as image source
-    const coordinates = [
-        [georaster.xmin, georaster.ymax], // top-left
-        [georaster.xmax, georaster.ymax], // top-right
-        [georaster.xmax, georaster.ymin], // bottom-right
-        [georaster.xmin, georaster.ymin]  // bottom-left
-    ];
+    console.log('NDVI layer coordinates (after swap check):', coordinates);
 
     map.addSource('ndvi-raster', {
         type: 'image',
@@ -540,22 +565,34 @@ async function loadNDVI() {
     }
 }
 
-// Create color scale for elevation (250-400m synthetic range)
+// Create color scale for elevation (7-582m SRTM range)
 function getElevationColor(value) {
-    // Elevation colormap: blue (low) -> green -> yellow -> brown -> white (high)
-    if (value < 270) return [69, 117, 180, 180];      // Dark blue - lowest
-    if (value < 290) return [116, 173, 209, 180];     // Light blue
-    if (value < 310) return [171, 217, 233, 180];     // Pale blue
-    if (value < 330) return [224, 243, 248, 180];     // Very pale blue
-    if (value < 350) return [255, 255, 191, 180];     // Yellow
-    if (value < 370) return [254, 224, 144, 180];     // Orange-yellow
-    if (value < 390) return [253, 174, 97, 180];      // Orange
-    return [215, 48, 39, 200];                         // Red-brown - highest
+    // Elevation colormap: blue (low/water) -> green -> yellow -> orange -> red (high)
+    // Based on actual SRTM data: 7m (Lake Ontario) to 582m (highlands)
+    if (value < 75) return [8, 48, 107, 180];         // Dark blue - water/lake level
+    if (value < 150) return [33, 113, 181, 180];      // Medium blue - lowlands
+    if (value < 225) return [66, 146, 198, 180];      // Light blue - low elevation
+    if (value < 300) return [107, 174, 214, 180];     // Pale blue - moderate
+    if (value < 350) return [158, 202, 225, 180];     // Very pale blue/cyan
+    if (value < 400) return [198, 219, 239, 180];     // Almost white-blue
+    if (value < 450) return [253, 208, 162, 180];     // Light orange - highlands
+    if (value < 500) return [253, 174, 107, 180];     // Orange - high elevation
+    if (value < 550) return [241, 105, 19, 180];      // Dark orange - mountains
+    return [217, 72, 1, 200];                          // Red-orange - highest peaks
 }
 
 // Canvas renderer for elevation data
 async function loadElevationWithCanvas(georaster) {
     console.log('Using custom canvas renderer for elevation');
+    console.log('Elevation georaster bounds:', {
+        xmin: georaster.xmin,
+        xmax: georaster.xmax,
+        ymin: georaster.ymin,
+        ymax: georaster.ymax,
+        width: georaster.width,
+        height: georaster.height,
+        projection: georaster.projection
+    });
 
     const canvas = document.createElement('canvas');
     canvas.width = georaster.width;
@@ -564,9 +601,13 @@ async function loadElevationWithCanvas(georaster) {
     const imageData = ctx.createImageData(canvas.width, canvas.height);
 
     // Render each pixel
+    // IMPORTANT: GeoTIFF Y-axis often starts from bottom (south), but canvas starts from top
+    // We need to flip vertically to match Mapbox coordinate system
     for (let y = 0; y < georaster.height; y++) {
         for (let x = 0; x < georaster.width; x++) {
-            const value = georaster.values[0][y][x];
+            // Flip Y-axis: read from bottom of georaster for top of canvas
+            const geoY = georaster.height - 1 - y;
+            const value = georaster.values[0][geoY][x];
             const color = getElevationColor(value);
             const idx = (y * canvas.width + x) * 4;
             imageData.data[idx] = color[0];     // R
@@ -578,13 +619,45 @@ async function loadElevationWithCanvas(georaster) {
 
     ctx.putImageData(imageData, 0, 0);
 
+    // Log sample values from corners to verify orientation
+    console.log('Elevation corner samples:');
+    console.log('  Top-left (NW):', georaster.values[0][0][0], 'm');
+    console.log('  Top-right (NE):', georaster.values[0][0][georaster.width - 1], 'm');
+    console.log('  Bottom-left (SW):', georaster.values[0][georaster.height - 1][0], 'm');
+    console.log('  Bottom-right (SE):', georaster.values[0][georaster.height - 1][georaster.width - 1], 'm');
+
     // Add as image source
+    // Mapbox GL JS expects coordinates in [longitude, latitude] order
+    // Order: top-left, top-right, bottom-right, bottom-left
+
+    // Check if georaster has lat/lon swapped (common with EPSG:4326 GeoTIFFs)
+    // EPSG:4326 officially uses (lat, lon) axis order but web mapping uses (lon, lat)
+    // If xmin > xmax or ymin > ymax, coordinates might be swapped
+    let xmin = georaster.xmin;
+    let xmax = georaster.xmax;
+    let ymin = georaster.ymin;
+    let ymax = georaster.ymax;
+
+    // Detect potential lat/lon swap - if "x" values look like latitudes
+    if (Math.abs(xmin) < 90 && Math.abs(xmax) < 90 &&
+        Math.abs(ymin) > 90 && Math.abs(ymax) > 90) {
+        console.warn('Detected potential lat/lon swap in georaster, swapping coordinates');
+        [xmin, ymin] = [ymin, xmin];
+        [xmax, ymax] = [ymax, xmax];
+    }
+
     const coordinates = [
-        [georaster.xmin, georaster.ymax], // top-left
-        [georaster.xmax, georaster.ymax], // top-right
-        [georaster.xmax, georaster.ymin], // bottom-right
-        [georaster.xmin, georaster.ymin]  // bottom-left
+        [xmin, ymax], // top-left
+        [xmax, ymax], // top-right
+        [xmax, ymin], // bottom-right
+        [xmin, ymin]  // bottom-left
     ];
+
+    console.log('Elevation layer coordinates (after swap check):', coordinates);
+    console.log('  Top-left (NW corner):', coordinates[0]);
+    console.log('  Top-right (NE corner):', coordinates[1]);
+    console.log('  Bottom-right (SE corner):', coordinates[2]);
+    console.log('  Bottom-left (SW corner):', coordinates[3]);
 
     map.addSource('elevation-raster', {
         type: 'image',
@@ -746,6 +819,15 @@ function getFuelTypeColor(value) {
 // Canvas renderer for fuel type data
 async function loadFuelTypeWithCanvas(georaster) {
     console.log('Using custom canvas renderer for fuel types');
+    console.log('Fuel type georaster bounds:', {
+        xmin: georaster.xmin,
+        xmax: georaster.xmax,
+        ymin: georaster.ymin,
+        ymax: georaster.ymax,
+        width: georaster.width,
+        height: georaster.height,
+        projection: georaster.projection
+    });
 
     const canvas = document.createElement('canvas');
     canvas.width = georaster.width;
@@ -769,12 +851,31 @@ async function loadFuelTypeWithCanvas(georaster) {
     ctx.putImageData(imageData, 0, 0);
 
     // Add as image source
+    // Mapbox GL JS expects coordinates in [longitude, latitude] order
+    // Order: top-left, top-right, bottom-right, bottom-left
+
+    // Check if georaster has lat/lon swapped (common with EPSG:4326 GeoTIFFs)
+    let xmin = georaster.xmin;
+    let xmax = georaster.xmax;
+    let ymin = georaster.ymin;
+    let ymax = georaster.ymax;
+
+    // Detect potential lat/lon swap
+    if (Math.abs(xmin) < 90 && Math.abs(xmax) < 90 &&
+        Math.abs(ymin) > 90 && Math.abs(ymax) > 90) {
+        console.warn('Detected potential lat/lon swap in fuel type georaster, swapping coordinates');
+        [xmin, ymin] = [ymin, xmin];
+        [xmax, ymax] = [ymax, xmax];
+    }
+
     const coordinates = [
-        [georaster.xmin, georaster.ymax], // top-left
-        [georaster.xmax, georaster.ymax], // top-right
-        [georaster.xmax, georaster.ymin], // bottom-right
-        [georaster.xmin, georaster.ymin]  // bottom-left
+        [xmin, ymax], // top-left
+        [xmax, ymax], // top-right
+        [xmax, ymin], // bottom-right
+        [xmin, ymin]  // bottom-left
     ];
+
+    console.log('Fuel type layer coordinates (after swap check):', coordinates);
 
     map.addSource('fueltype-raster', {
         type: 'image',
@@ -840,62 +941,97 @@ async function loadFuelType() {
 
 // Toggle layer visibility
 function toggleLayer(layerId, visible) {
+    console.log(`toggleLayer called: ${layerId} = ${visible}`);
     layerState[layerId] = visible;
 
-    switch(layerId) {
-        case 'treaty':
-            map.setLayoutProperty('treaty-fill', 'visibility', visible ? 'visible' : 'none');
-            map.setLayoutProperty('treaty-outline', 'visibility', visible ? 'visible' : 'none');
-            break;
+    try {
+        switch(layerId) {
+            case 'treaty':
+                if (map.getLayer('treaty-fill') && map.getLayer('treaty-outline')) {
+                    map.setLayoutProperty('treaty-fill', 'visibility', visible ? 'visible' : 'none');
+                    map.setLayoutProperty('treaty-outline', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Treaty boundary ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Treaty layers not found');
+                }
+                break;
 
-        case 'charities':
-            if (map.getLayer('charities-circles')) {
-                map.setLayoutProperty('charities-circles', 'visibility', visible ? 'visible' : 'none');
-            }
-            break;
+            case 'charities':
+                if (map.getLayer('charities-circles')) {
+                    map.setLayoutProperty('charities-circles', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Charities ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Charities layer not found');
+                }
+                break;
 
-        case 'communities':
-            if (map.getLayer('communities-circles')) {
-                map.setLayoutProperty('communities-circles', 'visibility', visible ? 'visible' : 'none');
-            }
-            break;
+            case 'communities':
+                if (map.getLayer('communities-circles')) {
+                    map.setLayoutProperty('communities-circles', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Communities ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Communities layer not found');
+                }
+                break;
 
-        case 'ndvi':
-            // Canvas-based rendering (only option with Mapbox GL JS)
-            if (map.getLayer('ndvi-layer')) {
-                map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
-            }
-            document.getElementById('ndvi-legend').style.display = visible ? 'block' : 'none';
-            break;
+            case 'ndvi':
+                // Canvas-based rendering (only option with Mapbox GL JS)
+                if (map.getLayer('ndvi-layer')) {
+                    map.setLayoutProperty('ndvi-layer', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ NDVI ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('NDVI layer not found');
+                }
+                const ndviLegend = document.getElementById('ndvi-legend');
+                if (ndviLegend) {
+                    ndviLegend.style.display = visible ? 'block' : 'none';
+                }
+                break;
 
-        case 'elevation':
-            // Canvas-based rendering
-            if (map.getLayer('elevation-layer')) {
-                map.setLayoutProperty('elevation-layer', 'visibility', visible ? 'visible' : 'none');
-            }
-            document.getElementById('elevation-legend').style.display = visible ? 'block' : 'none';
-            break;
+            case 'elevation':
+                // Canvas-based rendering
+                if (map.getLayer('elevation-layer')) {
+                    map.setLayoutProperty('elevation-layer', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Elevation ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Elevation layer not found');
+                }
+                const elevLegend = document.getElementById('elevation-legend');
+                if (elevLegend) {
+                    elevLegend.style.display = visible ? 'block' : 'none';
+                }
+                break;
 
-        case 'fire':
-            if (map.getLayer('fire-fill')) {
-                map.setLayoutProperty('fire-fill', 'visibility', visible ? 'visible' : 'none');
-                map.setLayoutProperty('fire-outline', 'visibility', visible ? 'visible' : 'none');
-            }
-            const fireLegend = document.getElementById('fire-legend');
-            if (fireLegend) {
-                fireLegend.style.display = visible ? 'block' : 'none';
-            }
-            break;
+            case 'fire':
+                if (map.getLayer('fire-fill') && map.getLayer('fire-outline')) {
+                    map.setLayoutProperty('fire-fill', 'visibility', visible ? 'visible' : 'none');
+                    map.setLayoutProperty('fire-outline', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Fire perimeters ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Fire layers not found');
+                }
+                const fireLegend = document.getElementById('fire-legend');
+                if (fireLegend) {
+                    fireLegend.style.display = visible ? 'block' : 'none';
+                }
+                break;
 
-        case 'fuelType':
-            if (map.getLayer('fueltype-layer')) {
-                map.setLayoutProperty('fueltype-layer', 'visibility', visible ? 'visible' : 'none');
-            }
-            const fuelLegend = document.getElementById('fuel-legend');
-            if (fuelLegend) {
-                fuelLegend.style.display = visible ? 'block' : 'none';
-            }
-            break;
+            case 'fuelType':
+                if (map.getLayer('fueltype-layer')) {
+                    map.setLayoutProperty('fueltype-layer', 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ Fuel types ${visible ? 'shown' : 'hidden'}`);
+                } else {
+                    console.warn('Fuel type layer not found');
+                }
+                const fuelLegend = document.getElementById('fuel-legend');
+                if (fuelLegend) {
+                    fuelLegend.style.display = visible ? 'block' : 'none';
+                }
+                break;
+        }
+    } catch (error) {
+        console.error(`Error toggling layer ${layerId}:`, error);
+        showNotification(`Error toggling ${layerId} layer: ${error.message}`, 'error');
     }
 }
 
@@ -908,15 +1044,75 @@ function changeBasemap(style) {
 
     const styleUrl = CONFIG.BASEMAPS[style];
 
+    console.log('Changing basemap to:', style);
+    showLoading();
+
     // Change style (Mapbox GL JS handles authentication automatically)
     map.setStyle(styleUrl);
 
-    // Restore layers after style loads
+    // Restore all layers after style loads
     map.once('style.load', () => {
-        loadTreatyBoundary();
-        if (layerState.ndvi && map.ndviLoaded) {
-            loadNDVI();
+        console.log('Restoring layers after basemap change...');
+
+        // Always reload treaty boundary (usually visible by default)
+        loadTreatyBoundary().then(() => {
+            if (!layerState.treaty) {
+                toggleLayer('treaty', false);
+            }
+        });
+
+        // Reload charities (always loaded on map init)
+        loadCharities().then(() => {
+            if (layerState.charities) {
+                toggleLayer('charities', true);
+            }
+        });
+
+        // Reload communities (always loaded on map init)
+        loadCommunities().then(() => {
+            if (layerState.communities) {
+                toggleLayer('communities', true);
+            }
+        });
+
+        // Reload NDVI if it was loaded before
+        if (map.ndviLoaded) {
+            loadNDVI().then(() => {
+                if (layerState.ndvi) {
+                    toggleLayer('ndvi', true);
+                }
+            });
         }
+
+        // Reload elevation if it was loaded before
+        if (map.elevationLoaded) {
+            loadElevation().then(() => {
+                if (layerState.elevation) {
+                    toggleLayer('elevation', true);
+                }
+            });
+        }
+
+        // Reload fire perimeters if they were loaded before
+        if (map.fireLoaded) {
+            loadFirePerimeters().then(() => {
+                if (layerState.fire) {
+                    toggleLayer('fire', true);
+                }
+            });
+        }
+
+        // Reload fuel types if they were loaded before
+        if (map.fuelTypeLoaded) {
+            loadFuelType().then(() => {
+                if (layerState.fuelType) {
+                    toggleLayer('fuelType', true);
+                }
+            });
+        }
+
+        hideLoading();
+        console.log('✓ All layers restored after basemap change');
     });
 }
 
@@ -954,19 +1150,23 @@ map.on('load', () => {
 
 // Layer control event listeners
 document.getElementById('layer-treaty').addEventListener('change', (e) => {
+    console.log('Treaty checkbox changed:', e.target.checked);
     toggleLayer('treaty', e.target.checked);
 });
 
 document.getElementById('layer-charities').addEventListener('change', (e) => {
+    console.log('Charities checkbox changed:', e.target.checked);
     toggleLayer('charities', e.target.checked);
 });
 
 document.getElementById('layer-communities').addEventListener('change', (e) => {
+    console.log('Communities checkbox changed:', e.target.checked);
     toggleLayer('communities', e.target.checked);
 });
 
 document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
     const checked = e.target.checked;
+    console.log('NDVI checkbox changed:', checked, 'Already loaded:', map.ndviLoaded);
 
     // If turning on and not loaded yet, load it first
     if (checked && !map.ndviLoaded) {
@@ -974,6 +1174,7 @@ document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
         const loaded = await loadNDVI();
         if (!loaded) {
             // Loading failed, uncheck the box
+            console.error('NDVI loading failed, unchecking box');
             e.target.checked = false;
             return;
         }
@@ -984,6 +1185,7 @@ document.getElementById('layer-ndvi').addEventListener('change', async (e) => {
 
 document.getElementById('layer-elevation').addEventListener('change', async (e) => {
     const checked = e.target.checked;
+    console.log('Elevation checkbox changed:', checked, 'Already loaded:', map.elevationLoaded);
 
     // If turning on and not loaded yet, load it first
     if (checked && !map.elevationLoaded) {
@@ -991,6 +1193,7 @@ document.getElementById('layer-elevation').addEventListener('change', async (e) 
         const loaded = await loadElevation();
         if (!loaded) {
             // Loading failed, uncheck the box
+            console.error('Elevation loading failed, unchecking box');
             e.target.checked = false;
             return;
         }
@@ -1001,6 +1204,7 @@ document.getElementById('layer-elevation').addEventListener('change', async (e) 
 
 document.getElementById('layer-fire').addEventListener('change', async (e) => {
     const checked = e.target.checked;
+    console.log('Fire checkbox changed:', checked, 'Already loaded:', map.fireLoaded);
 
     // If turning on and not loaded yet, load it first
     if (checked && !map.fireLoaded) {
@@ -1008,6 +1212,7 @@ document.getElementById('layer-fire').addEventListener('change', async (e) => {
         const loaded = await loadFirePerimeters();
         if (!loaded) {
             // Loading failed, uncheck the box
+            console.error('Fire loading failed, unchecking box');
             e.target.checked = false;
             return;
         }
@@ -1018,6 +1223,7 @@ document.getElementById('layer-fire').addEventListener('change', async (e) => {
 
 document.getElementById('layer-fuel').addEventListener('change', async (e) => {
     const checked = e.target.checked;
+    console.log('Fuel type checkbox changed:', checked, 'Already loaded:', map.fuelTypeLoaded);
 
     // If turning on and not loaded yet, load it first
     if (checked && !map.fuelTypeLoaded) {
@@ -1025,6 +1231,7 @@ document.getElementById('layer-fuel').addEventListener('change', async (e) => {
         const loaded = await loadFuelType();
         if (!loaded) {
             // Loading failed, uncheck the box
+            console.error('Fuel type loading failed, unchecking box');
             e.target.checked = false;
             return;
         }
