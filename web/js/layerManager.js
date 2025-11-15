@@ -228,7 +228,7 @@ class LayerManager {
                     }
 
                     // If turning on and not loaded yet, load it first
-                    if (checked && layer.lazy_load && !this.loadedLayers.has(layer.id)) {
+                    if (checked && !this.loadedLayers.has(layer.id)) {
                         console.log(`First time loading ${layer.name}...`);
                         this.loadingLayers.add(layer.id); // Mark as loading
                         try {
