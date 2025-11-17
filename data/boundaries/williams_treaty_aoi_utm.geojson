@@ -3,6 +3,6 @@
 "name": "williams_treaty_aoi_utm",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26917" } },
 "features": [
-{ "type": "Feature", "properties": { "name": "Williams Treaty Territories", "description": "Approximate area covering Williams Treaty First Nations territories", "source": "Manual bounding box", "buffer_applied": false }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 717199.418179416563362, 4853203.158962861634791 ], [ 713540.975785131566226, 4964279.976186872459948 ], [ 594906.866743381600827, 4961433.686968434602022 ], [ 596531.83296067698393, 4850359.39706036541611 ], [ 717199.418179416563362, 4853203.158962861634791 ] ] ] } }
+{ "type": "Feature", "properties": { "name": "Ontario", "description": "Province of Ontario bounding box", "source": "Manual bounding box", "buffer_applied": false }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 1057622.989249293459579, 4638209.97705730330199 ], [ 907725.244818885927089, 6326261.416199950501323 ], [ -361286.739392353920266, 6396401.24773340113461 ], [ -682829.927273953333497, 4715049.178320708684623 ], [ 1057622.989249293459579, 4638209.97705730330199 ] ] ] } }
 ]
 }
