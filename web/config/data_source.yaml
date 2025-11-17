@@ -1,0 +1,45 @@
+# Data Source Configuration
+# This file configures where the application loads geospatial data from
+
+# Primary data source - ontario-environmental-data repository
+# When deployed, data will be served from GitHub Pages
+data_source:
+  # Development: Use local data directory (default)
+  # Leave empty string to serve data from local /data/ directory
+  base_url: ""
+
+  # Production: Use GitHub Pages (uncomment to enable)
+  # Uncomment the line below when deploying to production
+  # base_url: "https://robertsoden.github.io/ontario-environmental-data"
+
+  # Alternative: Use raw.githubusercontent.com (slower, has rate limits)
+  # base_url: "https://raw.githubusercontent.com/robertsoden/ontario-environmental-data/main"
+
+  # Enable/disable fallback to local data if remote fails
+  fallback_to_local: true
+
+  # Cache control for data files
+  cache:
+    enabled: true
+    max_age_seconds: 3600  # 1 hour
+
+# Path mappings (if data structure differs between local and remote)
+# This allows you to map local paths to different remote paths
+path_mappings:
+  # Example:
+  # "/data/boundaries/": "boundaries/"
+  # "/data/processed/": "processed/"
+
+# CORS settings for external data sources
+cors:
+  enabled: true
+  allowed_origins:
+    - "https://robertsoden.github.io"
+    - "http://localhost:*"
+    - "http://127.0.0.1:*"
+
+# Environment variable override
+# Set DATA_SOURCE_URL environment variable to override base_url
+# Example: export DATA_SOURCE_URL="https://my-cdn.com/data"
+use_env_override: true
+env_var_name: "DATA_SOURCE_URL"
