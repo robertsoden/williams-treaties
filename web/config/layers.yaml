@@ -243,6 +243,19 @@ layers:
     status: available
     lazy_load: true
 
+    # Per-layer data source configuration (overrides global defaults)
+    # This layer uses local data only with source metadata
+    data_source:
+      # Use global defaults (local mode), just add metadata
+      source_info:
+        provider: "Ontario Ministry of the Environment, Conservation and Parks"
+        dataset: "Drinking Water Advisories"
+        date: "2025-11-13"
+        license: "Open Government License - Ontario"
+        license_url: "https://www.ontario.ca/page/open-government-licence-ontario"
+        update_frequency: "Weekly"
+        methodology: "Compiled from public drinking water advisory reports"
+
     style:
       circle:
         radius: 7
@@ -475,10 +488,10 @@ layers:
         - value: 582
           label: Peaks
           unit: m
-      description: CDEM 2m elevation data - Real terrain (Peterborough/Kingston region)
+      description: "CDEM 2m elevation data - Real terrain (Peterborough/Kingston region)"
 
     info:
-      description: Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)
+      description: "Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)"
 
   # ============================================================================
   # FIRE DATA
@@ -492,6 +505,22 @@ layers:
     initial_visibility: false
     status: available
     lazy_load: true
+
+    # Per-layer data source configuration
+    # Example: This layer could prefer remote data for live updates
+    data_source:
+      # Override global fallback to try remote first (commented out for now)
+      # fallback_priority: ["remote", "local"]
+
+      # Source metadata
+      source_info:
+        provider: "Canadian Wildland Fire Information System (CWFIS)"
+        dataset: "National Fire Database - Historical Fire Perimeters"
+        date_range: "1976-2024"
+        license: "Open Government License - Canada"
+        license_url: "https://open.canada.ca/en/open-government-licence-canada"
+        update_frequency: "Annual"
+        source_url: "https://cwfis.cfs.nrcan.gc.ca/datamart"
 
     style:
       fill:

@@ -1,34 +1,62 @@
-# Data Source Configuration
-# This file configures where the application loads geospatial data from
+# Global Data Source Configuration
+# These settings apply to all layers unless overridden in layers.yaml
+#
+# This file defines WHERE the server looks for data files:
+# - Local files in the /data/ directory
+# - Remote files from external URL (GitHub Pages, CDN, etc.)
+# - Hybrid mode with fallback between local and remote
 
-# Primary data source - ontario-environmental-data repository
-# When deployed, data will be served from GitHub Pages
 data_source:
-  # Development: Use local data directory (default)
-  # Leave empty string to serve data from local /data/ directory
-  base_url: ""
+  # Mode: local | remote | hybrid
+  # - local: Only serve from local /data/ directory
+  # - remote: Only redirect to external URL (set in remote_url)
+  # - hybrid: Try both sources based on fallback_priority
+  mode: local  # Default for development
 
-  # Production: Use GitHub Pages (uncomment to enable)
-  # Uncomment the line below when deploying to production
-  # base_url: "https://robertsoden.github.io/ontario-environmental-data"
+  # Remote data source URL (used when mode is 'remote' or 'hybrid')
+  # This is where external data is hosted (GitHub Pages, CDN, etc.)
+  remote_url: "https://robertsoden.github.io/ontario-environmental-data"
 
-  # Alternative: Use raw.githubusercontent.com (slower, has rate limits)
-  # base_url: "https://raw.githubusercontent.com/robertsoden/ontario-environmental-data/main"
+  # Local data directory (relative to project root)
+  local_path: "data"
 
-  # Enable/disable fallback to local data if remote fails
-  fallback_to_local: true
+  # Fallback priority for hybrid mode
+  # Try sources in this order: ["local", "remote"] or ["remote", "local"]
+  # Example: ["local", "remote"] tries local first, then remote if not found
+  fallback_priority: ["local", "remote"]
 
-  # Cache control for data files
-  cache:
-    enabled: true
-    max_age_seconds: 3600  # 1 hour
+  # What to do when data is missing in all sources
+  # Options:
+  #   - "404": Return standard 404 Not Found error
+  #   - "warn": Log warning but continue
+  #   - "error": Log error and return 500
+  on_missing: "404"
 
-# Path mappings (if data structure differs between local and remote)
-# This allows you to map local paths to different remote paths
-path_mappings:
-  # Example:
-  # "/data/boundaries/": "boundaries/"
-  # "/data/processed/": "processed/"
+# Cache settings for remote data
+# When loading from remote sources, cache locally to improve performance
+cache:
+  enabled: true
+  ttl_seconds: 3600  # 1 hour - how long to keep cached data
+  directory: ".cache/remote_data"  # Where to store cached files
+
+# Auto-create missing local directories on startup
+# If true, server will create data/processed/*, data/boundaries/, etc.
+auto_create_directories: true
+
+# Environment variable overrides
+# These environment variables can override configuration settings
+# Useful for deployment without modifying config files
+env_overrides:
+  enabled: true
+  variables:
+    # export DATA_SOURCE_URL="https://my-cdn.com/data"
+    DATA_SOURCE_URL: "remote_url"
+
+    # export DATA_MODE="remote"
+    DATA_MODE: "mode"
+
+    # export LOCAL_DATA_PATH="data"
+    LOCAL_DATA_PATH: "local_path"
 
 # CORS settings for external data sources
 cors:
@@ -38,8 +66,46 @@ cors:
     - "http://localhost:*"
     - "http://127.0.0.1:*"
 
-# Environment variable override
-# Set DATA_SOURCE_URL environment variable to override base_url
-# Example: export DATA_SOURCE_URL="https://my-cdn.com/data"
-use_env_override: true
-env_var_name: "DATA_SOURCE_URL"
+# ============================================================================
+# USAGE EXAMPLES
+# ============================================================================
+#
+# Development (use local files):
+#   mode: local
+#
+# Production (use GitHub Pages):
+#   mode: remote
+#   remote_url: "https://robertsoden.github.io/ontario-environmental-data"
+#
+# Hybrid (try remote first, fallback to local cache):
+#   mode: hybrid
+#   fallback_priority: ["remote", "local"]
+#
+# Hybrid (try local first, fallback to remote):
+#   mode: hybrid
+#   fallback_priority: ["local", "remote"]
+#
+# Environment override (for deployment):
+#   export DATA_MODE="remote"
+#   export DATA_SOURCE_URL="https://my-cdn.com/data"
+#
+# ============================================================================
+# PER-LAYER OVERRIDES
+# ============================================================================
+#
+# Individual layers can override these global settings in layers.yaml:
+#
+# Example 1 - Force a layer to use remote only:
+#   data_source:
+#     mode: "remote"
+#
+# Example 2 - Custom fallback for a layer:
+#   data_source:
+#     fallback_priority: ["remote", "local"]
+#
+# Example 3 - Direct URL bypass (skip server routing):
+#   data_source:
+#     direct_url: "https://external-api.com/data.json"
+#
+# See layers.yaml for complete per-layer configuration options
+#
