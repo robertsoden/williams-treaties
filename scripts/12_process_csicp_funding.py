@@ -13,8 +13,11 @@ def process_csicp_data():
 
     print("Processing CSICP funding data...")
 
-    # Read CSICP data
-    csicp = pd.read_excel('data/raw/CSICP Funding.xlsx')
+    # Read CSICP data (file has no headers)
+    csicp = pd.read_excel('data/raw/CSICP Funding.xlsx', header=None)
+
+    # Set proper column names
+    csicp.columns = ['Indigenous Group Name', 'Province', 'Project Name', 'Project Type', 'Funding Amount']
     print(f"Loaded {len(csicp)} projects")
 
     # Filter for Ontario
@@ -48,7 +51,7 @@ def process_csicp_data():
                     'group_name': group_name,
                     'project_name': project['Project Name'],
                     'project_type': project['Project Type'],
-                    'funding': project['Total Funding'],
+                    'funding': project['Funding Amount'],
                     'matched_community': comm['name'],
                     'geometry': comm['geometry']
                 })
@@ -68,7 +71,7 @@ def process_csicp_data():
                         'group_name': group_name,
                         'project_name': project['Project Name'],
                         'project_type': project['Project Type'],
-                        'funding': project['Total Funding'],
+                        'funding': project['Funding Amount'],
                         'matched_community': comm['name'],
                         'geometry': comm['geometry']
                     })
@@ -80,7 +83,7 @@ def process_csicp_data():
                         'group_name': group_name,
                         'project_name': project['Project Name'],
                         'project_type': project['Project Type'],
-                        'funding': project['Total Funding'],
+                        'funding': project['Funding Amount'],
                         'matched_community': comm['name'],
                         'geometry': comm['geometry']
                     })
@@ -90,17 +93,63 @@ def process_csicp_data():
         if not matched:
             print(f"  No location match for: {group_name}")
 
+    # For unmatched organizations, try to geocode headquarters
+    print(f"\nGeocoding organization headquarters for unmatched projects...")
+
+    # Manual headquarters locations for known organizations
+    org_headquarters = {
+        'Metis Nation of Ontario Secretariat': (-79.3832, 43.6532, 'Toronto, ON'),  # Toronto
+        'Nishnawbe Aski Nation': (-90.8483, 50.7538, 'Thunder Bay, ON'),  # Thunder Bay
+        'Chippewas of the Thames Board of Education': (-81.4991, 42.9697, 'Muncey, ON'),
+        'Oneida Nation of the Thames': (-81.4906, 42.9756, 'Southwold, ON'),
+        'Temagami First Nation': (-79.7919, 47.0534, 'Temagami, ON'),
+        'Biinjitawaabik Zaaging Anishnabek': (-90.0, 49.5, 'Northwestern Ontario'),  # Approximate
+        'Bingwi Neyaashi Anishinaabek': (-89.5, 49.0, 'Northwestern Ontario'),  # Approximate
+        'Iskatewizaagegan #39 Independent First Nation': (-94.5, 50.5, 'Northwestern Ontario'),  # Approximate
+        'MoCreebec Eeyoud': (-80.6489, 51.2328, 'Moose Factory, ON'),
+        'Weenusk First Nation': (-84.2500, 54.8833, 'Peawanuck, ON')
+    }
+
+    # Add unmatched projects using HQ locations
+    for _, project in csicp_ont.iterrows():
+        group_name = project['Indigenous Group Name']
+
+        # Check if already matched
+        if any(m['group_name'] == group_name for m in location_matches):
+            continue
+
+        # Check if we have HQ coordinates
+        if group_name in org_headquarters:
+            lon, lat, location = org_headquarters[group_name]
+            from shapely.geometry import Point
+
+            location_matches.append({
+                'group_name': group_name,
+                'project_name': project['Project Name'],
+                'project_type': project['Project Type'],
+                'funding': project['Funding Amount'],
+                'matched_community': f'{group_name} HQ ({location})',
+                'geometry': Point(lon, lat)
+            })
+            print(f"  ✓ Geocoded: {group_name} to {location}")
+
     print(f"\nMatched {len(location_matches)} projects to locations")
 
     if len(location_matches) == 0:
         print("No projects could be matched to locations within Williams Treaty boundaries")
         return None
 
-    # Create GeoDataFrame and convert polygon geometries to centroids
+    # Create GeoDataFrame
     gdf = gpd.GeoDataFrame(location_matches, crs='EPSG:4326')
 
-    # Convert all geometries to points (centroids)
-    gdf['geometry'] = gdf.geometry.centroid
+    # Convert any polygon geometries to centroids (for First Nations boundaries)
+    from shapely.geometry import Point
+    def ensure_point(geom):
+        if geom.geom_type in ['Polygon', 'MultiPolygon']:
+            return geom.centroid
+        return geom
+
+    gdf['geometry'] = gdf.geometry.apply(ensure_point)
 
     # Ensure output directory exists
     output_dir = Path('data/processed/csicp')

@@ -298,19 +298,22 @@ layers:
 
     style:
       fill:
-        # Choropleth coloring
+        # Choropleth coloring based on CWB score (0-100 scale)
         color:
           type: interpolate
           field: cwb_score
           stops:
-            - [60, '#d73027']  # Low CWB - red
-            - [70, '#fee08b']  # Medium - yellow
-            - [80, '#91cf60']  # High CWB - green
-        opacity: 0.6
+            - [50, '#d73027']  # Very low CWB - red
+            - [65, '#fc8d59']  # Low - orange
+            - [70, '#fee08b']  # Medium-low - yellow
+            - [75, '#d9ef8b']  # Medium - yellow-green
+            - [80, '#91cf60']  # Medium-high - light green
+            - [85, '#1a9850']  # High CWB - green
+        opacity: 0.65
       outline:
-        color: '#333'
-        width: 1.5
-        opacity: 0.8
+        color: '#555'
+        width: 1
+        opacity: 0.6
       before_layer: treaty-fill
 
     popup:
@@ -472,10 +475,10 @@ layers:
         - value: 582
           label: Peaks
           unit: m
-      description: SRTM 30m elevation data - Real terrain
+      description: CDEM 2m elevation data - Real terrain (Peterborough/Kingston region)
 
     info:
-      description: SRTM 30m resolution Digital Elevation Model showing real terrain elevation from approximately 75m to 600m above sea level
+      description: Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)
 
   # ============================================================================
   # FIRE DATA
@@ -537,7 +540,7 @@ layers:
     name: Wildland Fuel Classification
     category: fire
     type: raster
-    data_url: /data/processed/fuel/fuel_types.tif
+    data_url: /data/processed/fuel/fuel_types_web.tif
     initial_visibility: false
     status: available
     lazy_load: true

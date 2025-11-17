@@ -54,8 +54,8 @@ def clip_raster(input_path, aoi, output_path, logger):
         # Reproject AOI to match raster CRS if needed
         aoi_reprojected = aoi.to_crs(src.crs)
 
-        # Get geometries for masking
-        geoms = [json.loads(aoi_reprojected.to_json())['features'][0]['geometry']]
+        # Get geometries for masking (extract geometry directly to avoid JSON serialization issues)
+        geoms = [geom for geom in aoi_reprojected.geometry]
 
         # Clip raster
         try:

@@ -99,8 +99,6 @@ def main():
         help='Skip fire data download'
     )
     parser.add_argument(
-    )
-    parser.add_argument(
         '--skip-fire-fuel-dem',
         action='store_true',
         help='Skip fire perimeters, fuel types, and DEM download'

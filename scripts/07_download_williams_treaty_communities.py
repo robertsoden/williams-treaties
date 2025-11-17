@@ -123,18 +123,37 @@ def download_first_nations_reserves(output_path: Path, logger):
         if response.status_code == 200:
             gdf = gpd.read_file(io.StringIO(response.text))
 
-            # Filter for Williams Treaty reserves only
-            reserve_names = [nation['reserve_name'] for nation in WILLIAMS_TREATY_NATIONS]
-            filtered = gdf[gdf['IRNAME'].isin(reserve_names)]
+            # Filter for reserves within the AOI (Ontario)
+            logger.info(f"  Downloaded {len(gdf)} reserves from Canada")
+
+            # Load AOI to filter by Ontario boundaries
+            try:
+                from scripts.utils import load_aoi
+                aoi = load_aoi()
+                logger.info(f"  Filtering to reserves within AOI...")
+
+                # Ensure both are in same CRS
+                gdf = gdf.set_crs("EPSG:4326", allow_override=True)
+                aoi = aoi.to_crs("EPSG:4326")
+
+                # Spatial join to find reserves within AOI
+                filtered = gpd.sjoin(gdf, aoi, how='inner', predicate='intersects')
+
+                # Remove duplicate columns from join
+                filtered = filtered[[col for col in gdf.columns]]
+
+            except Exception as e:
+                logger.warning(f"  Could not filter by AOI: {e}")
+                logger.info("  Using all downloaded reserves")
+                filtered = gdf.set_crs("EPSG:4326", allow_override=True)
 
             if not filtered.empty:
-                filtered = filtered.set_crs("EPSG:4326")
                 save_geojson(filtered, output_path)
                 logger.info(f"\n✓ Downloaded {len(filtered)} reserve boundaries")
                 logger.info(f"  Saved to: {output_path}")
                 return filtered
             else:
-                logger.warning("  No reserves found matching Williams Treaty nations")
+                logger.warning("  No reserves found within AOI")
 
     except Exception as e:
         logger.warning(f"  WFS request failed: {str(e)}")
