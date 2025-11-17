@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Download and create Area of Interest (AOI) for Williams Treaty Territories.
+Download and create Area of Interest (AOI) for Ontario.
 
-This script creates a boundary representing the Williams Treaty area by:
-1. Downloading First Nations boundaries from Statistics Canada
-2. Filtering for the seven Williams Treaty First Nations
-3. Creating a buffered union to define the study area
-4. Saving as GeoJSON for use in other scripts
+This script creates a boundary representing the province of Ontario by:
+1. Creating a bounding box covering the entire province of Ontario
+2. Saving as GeoJSON for use in other data import scripts
+
+All other data import scripts will use this AOI to download data for Ontario.
 
 Usage:
     python scripts/01_download_aoi.py
@@ -32,19 +32,18 @@ from scripts.utils import (
 
 def create_aoi_from_coordinates(config):
     """
-    Create AOI from approximate coordinates of Williams Treaty area.
+    Create AOI from approximate coordinates of Ontario.
 
-    This creates a bounding box around the general Williams Treaty region
-    in south-central Ontario as a starting point.
+    This creates a bounding box around the entire province of Ontario.
     """
     logger = setup_logging(__name__)
     logger.info("Creating AOI from approximate coordinates...")
 
-    # Approximate bounding box for Williams Treaty Territories
-    # Covers area from Lake Simcoe to Peterborough/Kawartha Lakes region
+    # Approximate bounding box for Ontario province
+    # Covers the entire province of Ontario
     # Coordinates in WGS84 (EPSG:4326)
-    minx, miny = -79.8, 43.8   # Southwest corner
-    maxx, maxy = -78.3, 44.8   # Northeast corner
+    minx, miny = -95.2, 41.7   # Southwest corner (near Windsor/Point Pelee)
+    maxx, maxy = -74.3, 56.9   # Northeast corner (near Hudson Bay)
 
     # Create bounding box
     from shapely.geometry import box
@@ -53,8 +52,8 @@ def create_aoi_from_coordinates(config):
     # Create GeoDataFrame
     aoi = gpd.GeoDataFrame(
         {
-            'name': ['Williams Treaty Territories'],
-            'description': ['Approximate area covering Williams Treaty First Nations territories'],
+            'name': ['Ontario'],
+            'description': ['Province of Ontario bounding box'],
             'source': ['Manual bounding box'],
             'buffer_applied': [False]
         },
@@ -130,7 +129,7 @@ def create_williams_treaty_aoi(config):
 def main():
     """Main execution function."""
     logger = setup_logging(__name__)
-    logger.info("Starting AOI creation for Williams Treaty Territories")
+    logger.info("Starting AOI creation for Ontario")
 
     # Load configuration
     config = load_config()
@@ -144,7 +143,7 @@ def main():
     aoi = create_williams_treaty_aoi(config)
 
     # Print information
-    print_gdf_info(aoi, "Williams Treaty AOI")
+    print_gdf_info(aoi, "Ontario AOI")
 
     # Save as GeoJSON
     save_geojson(aoi, output_path)
@@ -159,6 +158,7 @@ def main():
     # Calculate and display area
     area_km2 = aoi_utm.geometry.area[0] / 1e6
     logger.info(f"Total AOI area: {area_km2:.2f} km²")
+    logger.info(f"Note: Ontario's actual area is approximately 1,076,395 km²")
 
     logger.info("AOI creation complete!")
     print("\n" + "="*60)
