@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 from flask import Flask, send_from_directory, send_file, jsonify
 from flask_cors import CORS
+import yaml
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -26,6 +27,7 @@ CORS(app)  # Enable CORS for all routes
 PROJECT_ROOT = Path(__file__).parent.parent
 WEB_DIR = PROJECT_ROOT / 'web'
 DATA_DIR = PROJECT_ROOT / 'data'
+CONFIG_DIR = WEB_DIR / 'config'
 
 
 @app.route('/')
@@ -126,6 +128,43 @@ def app_info():
     })
 
 
+def convert_keys_to_strings(obj):
+    """Recursively convert all dictionary keys to strings for JSON compatibility."""
+    if isinstance(obj, dict):
+        return {str(k): convert_keys_to_strings(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_keys_to_strings(item) for item in obj]
+    else:
+        return obj
+
+
+@app.route('/api/layer-config')
+def layer_config():
+    """Return layer configuration from YAML file."""
+    layers_config_file = CONFIG_DIR / 'layers.yaml'
+
+    if not layers_config_file.exists():
+        return jsonify({'error': 'Layer configuration file not found'}), 404
+
+    try:
+        with open(layers_config_file, 'r') as f:
+            config = yaml.safe_load(f)
+        # Convert all keys to strings for JSON compatibility
+        config = convert_keys_to_strings(config)
+        return jsonify(config)
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error loading config: {error_details}")
+        return jsonify({'error': f'Failed to load configuration: {str(e)}'}), 500
+
+
+@app.route('/layers')
+def layers_page():
+    """Serve the layers information page."""
+    return send_file(WEB_DIR / 'layers.html')
+
+
 def main():
     """Start the web server."""
     parser = argparse.ArgumentParser(
@@ -160,8 +199,10 @@ def main():
     print('')
     print('Available endpoints:')
     print(f'  Main application: http://{args.host}:{args.port}/')
-    print(f'  API info:        http://{args.host}:{args.port}/api/info')
-    print(f'  API layers:      http://{args.host}:{args.port}/api/layers')
+    print(f'  Layers info:      http://{args.host}:{args.port}/layers')
+    print(f'  API info:         http://{args.host}:{args.port}/api/info')
+    print(f'  API layers:       http://{args.host}:{args.port}/api/layers')
+    print(f'  API layer config: http://{args.host}:{args.port}/api/layer-config')
     print('')
     print('Press Ctrl+C to stop the server')
     print('=' * 70)

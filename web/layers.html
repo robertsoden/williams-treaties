@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer Information - Williams Treaty Territories</title>
+    <link rel="stylesheet" href="css/layers.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Williams Treaty Territories</h1>
+            <h2>Layer Information</h2>
+            <nav>
+                <a href="/">← Back to Map</a>
+            </nav>
+        </header>
+
+        <main id="layer-content">
+            <div class="loading">Loading layer information...</div>
+        </main>
+    </div>
+
+    <script>
+        // Fetch and display layer configuration
+        async function loadLayers() {
+            try {
+                const response = await fetch('/api/layer-config');
+                const config = await response.json();
+
+                if (config.error) {
+                    throw new Error(config.error);
+                }
+
+                displayLayers(config);
+            } catch (error) {
+                document.getElementById('layer-content').innerHTML = `
+                    <div class="error">
+                        <h3>Error Loading Layers</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayLayers(config) {
+            const content = document.getElementById('layer-content');
+            const categories = config.categories || [];
+            const layers = config.layers || [];
+
+            // Group layers by category
+            const layersByCategory = {};
+            categories.forEach(cat => {
+                layersByCategory[cat.id] = {
+                    name: cat.name,
+                    order: cat.order,
+                    layers: []
+                };
+            });
+
+            // Add layers to their categories (only active layers)
+            layers.forEach(layer => {
+                if (layer.active !== false && layersByCategory[layer.category]) {
+                    layersByCategory[layer.category].layers.push(layer);
+                }
+            });
+
+            // Sort categories by order
+            const sortedCategories = Object.entries(layersByCategory)
+                .sort((a, b) => a[1].order - b[1].order);
+
+            // Build HTML
+            let html = '';
+
+            sortedCategories.forEach(([categoryId, category]) => {
+                if (category.layers.length === 0) return;
+
+                html += `
+                    <section class="category">
+                        <h2 class="category-title">${category.name}</h2>
+                        <div class="layers">
+                `;
+
+                category.layers.forEach(layer => {
+                    html += renderLayer(layer);
+                });
+
+                html += `
+                        </div>
+                    </section>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        function renderLayer(layer) {
+            const statusBadge = getStatusBadge(layer.status);
+            const typeBadge = getTypeBadge(layer.type);
+
+            let html = `
+                <div class="layer-card" id="layer-${layer.id}">
+                    <div class="layer-header">
+                        <h3 class="layer-name">${layer.name}</h3>
+                        <div class="badges">
+                            ${typeBadge}
+                            ${statusBadge}
+                        </div>
+                    </div>
+            `;
+
+            // Description
+            if (layer.info && layer.info.description) {
+                html += `
+                    <div class="layer-section">
+                        <p class="description">${layer.info.description}</p>
+                    </div>
+                `;
+            }
+
+            // Basic info
+            html += `
+                <div class="layer-section">
+                    <h4>Layer Details</h4>
+                    <table class="info-table">
+                        <tr>
+                            <td><strong>ID:</strong></td>
+                            <td><code>${layer.id}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Type:</strong></td>
+                            <td>${layer.type}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data Source:</strong></td>
+                            <td><code>${layer.data_url}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Initial Visibility:</strong></td>
+                            <td>${layer.initial_visibility ? 'Visible' : 'Hidden'}</td>
+                        </tr>
+            `;
+
+            if (layer.lazy_load) {
+                html += `
+                    <tr>
+                        <td><strong>Loading:</strong></td>
+                        <td>Lazy-loaded (loads when activated)</td>
+                    </tr>
+                `;
+            }
+
+            if (layer.requires_library) {
+                html += `
+                    <tr>
+                        <td><strong>Requires:</strong></td>
+                        <td>${layer.requires_library}</td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                    </table>
+                </div>
+            `;
+
+            // Style information
+            if (layer.style) {
+                html += renderStyleInfo(layer);
+            }
+
+            // Popup configuration
+            if (layer.popup) {
+                html += renderPopupInfo(layer.popup);
+            }
+
+            // Legend information
+            if (layer.legend) {
+                html += renderLegendInfo(layer.legend);
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        function renderStyleInfo(layer) {
+            const style = layer.style;
+            let html = `
+                <div class="layer-section">
+                    <h4>Style Configuration</h4>
+            `;
+
+            if (layer.type === 'polygon' && style.fill) {
+                html += '<div class="style-preview">';
+                if (typeof style.fill.color === 'string') {
+                    html += `<div class="color-swatch" style="background-color: ${style.fill.color}; opacity: ${style.fill.opacity || 1}"></div>`;
+                    html += `<span>Fill: ${style.fill.color} (${Math.round((style.fill.opacity || 1) * 100)}% opacity)</span>`;
+                } else if (style.fill.color && style.fill.color.type) {
+                    html += `<span>Fill: Dynamic (${style.fill.color.type})</span>`;
+                }
+                html += '</div>';
+
+                if (style.outline) {
+                    html += '<div class="style-preview">';
+                    html += `<div class="color-swatch" style="background-color: ${style.outline.color}; opacity: ${style.outline.opacity || 1}"></div>`;
+                    html += `<span>Outline: ${style.outline.color}, ${style.outline.width}px (${Math.round((style.outline.opacity || 1) * 100)}% opacity)</span>`;
+                    html += '</div>';
+                }
+            }
+
+            if (layer.type === 'point' && style.circle) {
+                html += '<div class="style-preview">';
+                if (typeof style.circle.color === 'string') {
+                    html += `<div class="circle-preview" style="background-color: ${style.circle.color}; opacity: ${style.circle.opacity || 1}; width: ${style.circle.radius * 2}px; height: ${style.circle.radius * 2}px;"></div>`;
+                    html += `<span>Color: ${style.circle.color}, Radius: ${style.circle.radius}px (${Math.round((style.circle.opacity || 1) * 100)}% opacity)</span>`;
+                } else if (style.circle.color && style.circle.color.type) {
+                    html += `<span>Color: Dynamic (${style.circle.color.type} by ${style.circle.color.field})</span>`;
+                    if (style.circle.color.values) {
+                        html += '<div class="color-mapping">';
+                        for (const [key, value] of Object.entries(style.circle.color.values)) {
+                            html += `<div class="mapping-item">`;
+                            html += `<div class="color-swatch" style="background-color: ${value}"></div>`;
+                            html += `<span>${key}</span>`;
+                            html += `</div>`;
+                        }
+                        html += '</div>';
+                    }
+                }
+                html += '</div>';
+            }
+
+            if (layer.type === 'raster' && style.color_scale) {
+                html += `<p><strong>Color Scale:</strong> ${style.color_scale.type}</p>`;
+                html += `<p><strong>Opacity:</strong> ${Math.round((style.opacity || 1) * 100)}%</p>`;
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        function renderPopupInfo(popup) {
+            let html = `
+                <div class="layer-section">
+                    <h4>Popup Information</h4>
+                    <table class="info-table">
+            `;
+
+            if (popup.title_field || popup.title_fields) {
+                const titleFields = popup.title_fields || [popup.title_field];
+                html += `
+                    <tr>
+                        <td><strong>Title Field(s):</strong></td>
+                        <td><code>${titleFields.join(', ')}</code></td>
+                    </tr>
+                `;
+            }
+
+            if (popup.title_default) {
+                html += `
+                    <tr>
+                        <td><strong>Default Title:</strong></td>
+                        <td>${popup.title_default}</td>
+                    </tr>
+                `;
+            }
+
+            html += `</table>`;
+
+            if (popup.fields && popup.fields.length > 0) {
+                html += `<h5>Popup Fields</h5><ul class="field-list">`;
+                popup.fields.forEach(field => {
+                    const fieldNames = field.fields || [field.field];
+                    html += `<li><strong>${field.label}:</strong> ${fieldNames.join(' or ')}`;
+                    if (field.format) html += ` (format: <code>${field.format}</code>)`;
+                    if (field.optional) html += ` <em>(optional)</em>`;
+                    if (field.truncate) html += ` <em>(truncated to ${field.truncate} chars)</em>`;
+                    html += `</li>`;
+                });
+                html += `</ul>`;
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        function renderLegendInfo(legend) {
+            let html = `
+                <div class="layer-section">
+                    <h4>Legend</h4>
+                    <p><strong>Title:</strong> ${legend.title}</p>
+                    <p><strong>Type:</strong> ${legend.type}</p>
+            `;
+
+            if (legend.description) {
+                html += `<p><strong>Description:</strong> ${legend.description}</p>`;
+            }
+
+            if (legend.gradient) {
+                html += `<div class="gradient-preview" style="background: ${legend.gradient}; height: 30px; border-radius: 4px; margin: 10px 0;"></div>`;
+            }
+
+            if (legend.stops) {
+                html += `<h5>Legend Stops</h5><ul class="field-list">`;
+                legend.stops.forEach(stop => {
+                    html += `<li><strong>${stop.value}${stop.unit || ''}:</strong> ${stop.label}</li>`;
+                });
+                html += `</ul>`;
+            }
+
+            if (legend.items) {
+                html += `<h5>Legend Items</h5><div class="legend-items">`;
+                legend.items.forEach(item => {
+                    html += `<div class="legend-item">`;
+                    if (item.color) {
+                        html += `<div class="color-swatch" style="background: ${item.color}; border: ${item.border || 'none'}"></div>`;
+                    }
+                    html += `<span>${item.label}</span>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        function getStatusBadge(status) {
+            const statusColors = {
+                'available': '#28a745',
+                'pending': '#ffc107',
+                'unavailable': '#dc3545'
+            };
+            const color = statusColors[status] || '#6c757d';
+            return `<span class="badge" style="background-color: ${color}">${status || 'unknown'}</span>`;
+        }
+
+        function getTypeBadge(type) {
+            const typeColors = {
+                'polygon': '#007bff',
+                'point': '#17a2b8',
+                'raster': '#6f42c1'
+            };
+            const color = typeColors[type] || '#6c757d';
+            return `<span class="badge" style="background-color: ${color}">${type}</span>`;
+        }
+
+        // Load layers on page load
+        loadLayers();
+    </script>
+</body>
+</html>
