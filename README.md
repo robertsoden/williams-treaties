@@ -1,22 +1,19 @@
-# Williams Treaty Territories - Interactive Map Browser
+# Williams Treaty Territories - Interactive Map
 
-A lightweight interactive map browser for environmental planning and climate change adaptation in the Williams Treaty Territories.
+An interactive web-based map for visualizing environmental and climate data in the Williams Treaty Territories of Ontario, Canada.
 
 ## Overview
 
-This project provides an interactive web-based map interface to explore environmental datasets relevant to climate adaptation planning in the Williams Treaty First Nations territories in Ontario, Canada.
+This project provides a lightweight, browser-based map interface to explore geospatial datasets relevant to climate adaptation planning in Williams Treaty First Nations territories.
 
-## Focus Areas
+**This repository contains ONLY the visualization application.** All data generation is handled by the [ontario-environmental-data](https://github.com/robertsoden/ontario-environmental-data) repository.
 
-1. **Land Use and Land Cover** - Current and historical land classification
-2. **NDVI (Vegetation Health)** - Satellite-derived vegetation indices for monitoring ecosystem health
-3. **Fire Hazard** - Historical fire perimeters and wildland fuel type classifications
-4. **Elevation (DEM)** - Digital elevation model for terrain analysis
-5. **Communities** - Williams Treaty First Nations community locations
-6. **Environmental Organizations** - Local charities and conservation groups
-7. **Infrastructure** - Federal infrastructure projects (housing, water, etc.)
-8. **Water Advisories** - Drinking water advisory status
-9. **Community Well-Being** - Census subdivision well-being scores
+## Architecture
+
+```
+ontario-environmental-data    → Data generation (scripts, downloads, processing)
+williams-treaties             → Data visualization (web app, map interface)
+```
 
 ## Williams Treaty Territories
 
@@ -38,164 +35,296 @@ The treaty area encompasses parts of:
 - Northumberland County
 - Peterborough County
 
-## Getting Started
+---
 
-### 1. Install Dependencies
+## Quick Start
 
-```bash
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install required packages
-pip install -r requirements.txt
-```
-
-### 2. Download Data
+### Option 1: Use Remote Data (Recommended)
 
 ```bash
-# Run complete data pipeline
-python scripts/run_all.py --ndvi-example
+# Install dependencies
+pip install flask flask-cors pyyaml
 
-# Or run individual scripts
-python scripts/01_download_aoi.py                      # Define study area
-python scripts/02_download_landcover.py                # Land cover data
-python scripts/03_process_ndvi.py --example            # Vegetation indices
-python scripts/04_download_fire_data.py                # Fire hazard data
-python scripts/06_download_fire_fuel_dem.py            # Fire perimeters, fuel types, DEM
-python scripts/07_download_williams_treaty_communities.py  # First Nations communities
-python scripts/09_process_infrastructure_projects.py   # Infrastructure projects
-python scripts/10_process_water_advisories.py          # Water advisories
-python scripts/11_process_cwb_data.py                  # Community Well-Being data
-
-# Or create demo data (faster for testing)
-python scripts/create_demo_fire_fuel.py                # Demo fire/fuel data
-```
-
-See [DATA_PIPELINE.md](./DATA_PIPELINE.md) for detailed instructions.
-
-### 3. View Data in Interactive Map
-
-```bash
-# Quick start - runs server and opens map
-./start_map.sh
-
-# Or manually start the server
+# Run with remote data from GitHub Pages
+export DATA_SOURCE_URL="https://robertsoden.github.io/ontario-environmental-data"
 python web/server.py
 
-# Then open in browser: http://localhost:8000
+# Open browser to http://localhost:8000
 ```
 
-See [web/README.md](./web/README.md) for detailed web application documentation.
+### Option 2: Use Local Data (Development)
 
-**Features:**
-- Full-screen interactive map with Mapbox basemaps
-- 12+ interactive data layers with toggle controls:
-  - Williams Treaty boundaries
-  - Reserve boundaries (21 reserves)
-  - First Nations communities (7 communities)
-  - Environmental organizations/charities
-  - NDVI vegetation health monitoring
-  - Digital elevation model (DEM)
-  - Historical fire perimeters (1976-2024, 37 fires)
-  - Wildland fuel type classifications
-  - Infrastructure projects (445 projects)
-  - Water advisories (3 advisories, 1 active)
-  - Community Well-Being (122 communities)
-  - Cultural infrastructure funding (CSICP)
-- Color-coded legends and choropleth maps
-- Popup information on click
-- Responsive design for desktop and mobile
-- Graceful error handling and user notifications
+```bash
+# Clone data repository
+cd ..
+git clone https://github.com/robertsoden/ontario-environmental-data.git
 
-## Datasets
+# Generate data (see ontario-environmental-data README)
+cd ontario-environmental-data
+pip install -e ".[geo]"
+python scripts/run_all.py
 
-See [DATASETS.md](./DATASETS.md) for comprehensive information about data sources, including:
-- Open government data sources (Canada, Ontario)
-- Satellite imagery (Landsat, Sentinel-2, MODIS)
-- Climate and environmental monitoring data
-- Conservation authority datasets
+# Link data to williams-treaties
+cd ../williams-treaties
+ln -s ../ontario-environmental-data/data data
 
-## Project Structure
+# Run server with local data
+python web/server.py
+
+# Open browser to http://localhost:8000
+```
+
+---
+
+## Map Layers
+
+The application visualizes 12+ environmental datasets:
+
+### Boundaries & Communities
+- Williams Treaty Territories boundary
+- First Nations reserve boundaries
+- Community locations
+
+### Environmental Data
+- **Fire Data**: Historical fire perimeters (1976-2024), fuel type classifications
+- **Elevation**: Digital Elevation Model (DEM) at 2m resolution
+- **Vegetation**: NDVI vegetation health indices
+- **Land Cover**: NRCan land cover classifications
+
+### Community Data
+- Environmental organizations and charities
+- Drinking water advisories
+- Infrastructure projects
+- Community Well-Being (CWB) scores
+- Cultural infrastructure funding (CSICP)
+
+---
+
+## Configuration
+
+### Data Sources
+
+Configure where the application loads data from:
+
+**`web/config/data_source.yaml`:**
+```yaml
+data_source:
+  mode: local  # local | remote | hybrid
+  remote_url: "https://robertsoden.github.io/ontario-environmental-data"
+  fallback_priority: ["local", "remote"]
+```
+
+**Environment Variable (Production):**
+```bash
+export DATA_SOURCE_URL="https://robertsoden.github.io/ontario-environmental-data"
+export DATA_MODE="remote"
+```
+
+### Layer Configuration
+
+All map layers are configured in `web/config/layers.yaml`:
+
+```yaml
+layers:
+  - id: fire
+    name: Fire Perimeters
+    category: fire
+    type: polygon
+    data_url: /data/processed/fire/fire_perimeters_1976_2024.geojson
+
+    # Per-layer data source override
+    data_source:
+      source_info:
+        provider: "Canadian Wildland Fire Information System"
+        update_frequency: "Annual"
+
+    style:
+      fill:
+        color: '#d73027'
+
+    popup:
+      title_field: fire_name
+      fields:
+        - label: Year
+          field: year
+        - label: Area
+          field: area_ha
+```
+
+See [web/config/README.md](web/config/README.md) for complete layer configuration documentation.
+
+---
+
+## Features
+
+### Interactive Map
+- Full-screen map with Mapbox basemaps
+- Layer toggle controls with categories
+- Custom styling for each layer type
+- Data-driven symbology (choropleth, conditional colors)
+
+### Data Visualization
+- **Point layers**: Environmental organizations, communities
+- **Polygon layers**: Boundaries, fire perimeters, well-being data
+- **Raster layers**: Elevation (DEM), vegetation (NDVI), fuel types
+
+### Popups & Legends
+- Click features for detailed information
+- Custom popup fields per layer
+- Dynamic legends for raster and categorical data
+
+### YAML-Based Configuration
+- All layers defined in YAML (no code changes needed)
+- Per-layer styling, popups, legends
+- Per-layer data source overrides
+- Easy to add/modify layers
+
+---
+
+## Development
+
+### Project Structure
 
 ```
 williams-treaties/
-├── config.yaml              # Configuration settings
-├── requirements.txt         # Python dependencies
-├── start_map.sh            # Quick start script for web map
-├── scripts/                 # Data download and processing scripts
-│   ├── utils/              # Common utilities
-│   ├── 01_download_aoi.py
-│   ├── 02_download_landcover.py
-│   ├── 03_process_ndvi.py
-│   ├── 04_download_fire_data.py
-│   ├── 06_download_fire_fuel_dem.py        # Fire perimeters, fuel types, DEM
-│   ├── 07_download_williams_treaty_communities.py  # First Nations communities
-│   ├── 09_process_infrastructure_projects.py
-│   ├── 10_process_water_advisories.py
-│   ├── 11_process_cwb_data.py
-│   ├── 12_process_csicp_funding.py
-│   ├── create_demo_fire_fuel.py            # Demo data generator
-│   └── run_all.py          # Run complete pipeline
-├── web/                     # Interactive map application
-│   ├── index.html          # Main map interface
-│   ├── css/style.css       # Styling
-│   ├── js/
-│   │   ├── map.js          # Map logic and layer controls
-│   │   ├── config.js       # User configuration (Mapbox token)
-│   │   └── config.example.js
-│   ├── server.py           # Flask web server
-│   └── README.md           # Web app documentation
-├── data/
-│   ├── boundaries/         # Study area boundaries (Williams Treaty)
-│   ├── raw/               # Downloaded raw data
-│   └── processed/         # Processed data ready for mapping
-│       ├── ndvi/          # Vegetation health data
-│       ├── fire/          # Fire perimeters
-│       ├── fuel/          # Fuel type classifications
-│       ├── dem/           # Digital elevation model
-│       ├── communities/   # First Nations communities
-│       └── charities/     # Environmental organizations
-└── docs/
-    ├── DATASETS.md        # Dataset documentation
-    └── DATA_PIPELINE.md   # Pipeline usage guide
+├── web/                          # Web application
+│   ├── index.html               # Main map interface
+│   ├── map.js                   # Map logic
+│   ├── styles.css               # Styling
+│   ├── layers.html              # Layer info page
+│   ├── server.py                # Flask server
+│   └── config/
+│       ├── data_source.yaml     # Data source config
+│       ├── layers.yaml          # Layer definitions
+│       └── README.md            # Config documentation
+├── data/                         # Data files (symlink or gitignored)
+└── README.md                     # This file
 ```
 
-## Project Status
+### Running the Server
 
-✅ **Core Features Complete** - Ready for local use and data exploration
+```bash
+# Basic usage
+python web/server.py
 
-**Completed:**
-- ✅ Dataset identification and documentation
-- ✅ Data download scripts for all focus areas (7 scripts)
-- ✅ NDVI processing pipeline with demo data
-- ✅ AOI boundary definition (Williams Treaty territories)
-- ✅ Configuration and utilities framework
-- ✅ Interactive web map interface with 8 data layers
-- ✅ Williams Treaty boundaries visualization
-- ✅ First Nations communities layer (7 communities)
-- ✅ Environmental organizations/charities layer
-- ✅ Digital elevation model (DEM) visualization
-- ✅ Historical fire perimeters (demo data)
-- ✅ Wildland fuel type classifications (demo data)
-- ✅ Layer controls and legends
-- ✅ Full-screen map browser with Mapbox/OSM basemaps
-- ✅ Graceful error handling and notifications
-- ✅ Demo data generation tools
+# Custom port
+python web/server.py --port 3000
 
-**Next Steps:**
-- 🔲 Add time-series analysis tools (NDVI trends over time)
-- 🔲 Add data export functionality (GeoJSON, CSV)
-- 🔲 Layer opacity and ordering controls
-- 🔲 Add layer legends for infrastructure and water advisories
-- 🔲 Deploy to web hosting (GitHub Pages or cloud)
-- 🔲 Mobile app considerations
+# Debug mode
+python web/server.py --debug
+
+# With environment variables
+export DATA_SOURCE_URL="https://example.com/data"
+python web/server.py
+```
+
+### API Endpoints
+
+- `GET /` - Main map application
+- `GET /layers` - Layer information page
+- `GET /api/info` - Application metadata
+- `GET /api/data-source` - Current data source configuration
+- `GET /api/layer-config` - Layer definitions (from layers.yaml)
+- `GET /api/layers` - Available data layers
+- `GET /data/<filepath>` - Data files (redirects or serves local)
+
+---
+
+## Data Generation
+
+**All data generation happens in the [ontario-environmental-data](https://github.com/robertsoden/ontario-environmental-data) repository.**
+
+To generate or update data:
+
+```bash
+# Clone data repository
+git clone https://github.com/robertsoden/ontario-environmental-data.git
+cd ontario-environmental-data
+
+# Install dependencies
+pip install -e ".[geo]"
+
+# Generate all datasets
+python scripts/run_all.py
+
+# Generated files appear in data/
+```
+
+See the [ontario-environmental-data README](https://github.com/robertsoden/ontario-environmental-data#readme) for complete data generation documentation.
+
+---
+
+## Deployment
+
+### Render.com
+
+The `render.yaml` file provides one-click deployment:
+
+1. Connect your GitHub repository to Render
+2. Render automatically detects `render.yaml`
+3. Set environment variable: `DATA_SOURCE_URL=https://robertsoden.github.io/ontario-environmental-data`
+4. Deploy
+
+### Other Platforms
+
+For Heroku, Railway, Fly.io, etc.:
+
+```bash
+# Set environment variable
+DATA_SOURCE_URL=https://robertsoden.github.io/ontario-environmental-data
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run server
+python web/server.py
+```
+
+---
+
+## Cultural Sensitivity
+
+When working with Indigenous data:
+
+✅ Follow OCAP® principles (Ownership, Control, Access, Possession)
+✅ Respect data sovereignty
+✅ Include proper attribution
+✅ Obtain permission for sensitive data
+✅ Use respectful terminology
+
+---
+
+## Related Projects
+
+- **ontario-environmental-data**: https://github.com/robertsoden/ontario-environmental-data - Data generation and API library
+- **Ontario Nature Watch**: https://github.com/robertsoden/onw - LLM agent for environmental queries
+
+---
 
 ## License
 
-Project code: TBD
-Data sources: Various open licenses (see DATASETS.md for details)
+MIT License - see LICENSE file for details.
 
 ## Contact
 
-For questions about this project or collaboration opportunities, please open an issue.
+- **Issues**: https://github.com/robertsoden/williams-treaties/issues
+- **Email**: robertsoden@users.noreply.github.com
+
+---
+
+## Attribution
+
+### Data Sources
+
+- **Natural Resources Canada**: Land cover, DEM, fire data
+- **Canadian Wildland Fire Information System (CWFIS)**: Fire perimeters and fuel types
+- **Indigenous Services Canada**: Water advisories
+- **Infrastructure Canada**: Project data
+- **Statistics Canada**: Census data, boundaries, Community Well-Being Index
+
+### Acknowledgments
+
+- Williams Treaty First Nations
+- Ontario conservation authorities
+- Ontario Ministry of Natural Resources and Forestry
+- Environment and Climate Change Canada
