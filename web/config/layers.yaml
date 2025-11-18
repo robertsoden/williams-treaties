@@ -47,7 +47,7 @@ layers:
     name: Williams Treaty Territories
     category: boundaries
     type: polygon
-    data_url: /data/boundaries/williams_treaty.geojson
+    data_url: /data/processed/boundaries/williams_treaty.geojson
     initial_visibility: true
     status: available
     active: true
