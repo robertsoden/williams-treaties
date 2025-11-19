@@ -112,6 +112,74 @@ layers:
     info:
       description: All 203 Indian Reserves in Ontario from Natural Resources Canada
 
+  - id: municipalities
+    name: Ontario Municipalities
+    category: boundaries
+    type: polygon
+    data_url: /data/processed/boundaries/ontario_municipalities.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#e0e0e0'
+        opacity: 0.1
+      outline:
+        color: '#999999'
+        width: 0.5
+        opacity: 0.4
+
+    popup:
+      title_fields: [CSDNAME]
+      fields:
+        - label: Municipality Name
+          field: CSDNAME
+        - label: Type
+          field: CSDTYPE
+        - label: Population (2021)
+          field: LANDAREA
+        - label: Province
+          field: PRNAME
+
+    info:
+      description: All 577 Census Subdivisions (municipalities) in Ontario from Statistics Canada 2021 Census
+
+  - id: conservation_authorities
+    name: Conservation Authorities
+    category: boundaries
+    type: polygon
+    data_url: /data/processed/boundaries/conservation_authorities.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#a6cee3'
+        opacity: 0.2
+      outline:
+        color: '#1f78b4'
+        width: 1.5
+        opacity: 0.6
+
+    popup:
+      title_fields: [LEGAL_NAME, COMMON_NAME]
+      fields:
+        - label: Legal Name
+          field: LEGAL_NAME
+        - label: Common Name
+          field: COMMON_NAME
+        - label: Area (sq km)
+          field: AREA_IN_SQ_KM
+        - label: Type
+          field: F_TYPE
+
+    info:
+      description: Ontario's 36 Conservation Authorities from Land Information Ontario. Conservation authorities are local watershed management agencies that deliver services and programs to protect and manage natural resources.
+
   - id: reserves
     name: Williams Treaty Reserves
     category: boundaries

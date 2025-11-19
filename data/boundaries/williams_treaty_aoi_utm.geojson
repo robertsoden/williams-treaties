@@ -1,8 +1,0 @@
-{
-"type": "FeatureCollection",
-"name": "williams_treaty_aoi_utm",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26917" } },
-"features": [
-{ "type": "Feature", "properties": { "name": "Ontario", "description": "Province of Ontario bounding box", "source": "Manual bounding box", "buffer_applied": false }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 1057622.98924929369241, 4638209.97705730330199 ], [ 907725.244818885810673, 6326261.416199951432645 ], [ -361286.739392353920266, 6396401.247733402997255 ], [ -682829.927273953333497, 4715049.178320709615946 ], [ 1057622.98924929369241, 4638209.97705730330199 ] ] ] } }
-]
-}
