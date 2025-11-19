@@ -118,9 +118,18 @@ def get_data_local_path():
     return config.get('data_source', {}).get('local_path', 'data')
 
 
-def auto_create_directories():
-    """Auto-create missing data directories if configured."""
+def auto_create_directories(mode):
+    """Auto-create missing data directories if configured.
+
+    Args:
+        mode: The data source mode ('local', 'remote', or 'hybrid')
+    """
     config = load_data_source_config()
+
+    # Skip directory creation in remote mode (no local data needed)
+    if mode == 'remote':
+        print("✓ Remote mode - skipping local directory creation")
+        return
 
     if not config.get('auto_create_directories', True):
         return
@@ -162,8 +171,8 @@ DATA_REMOTE_URL = DATA_SOURCE_CONFIG.get('data_source', {}).get('remote_url', ''
 DATA_LOCAL_PATH = DATA_SOURCE_CONFIG.get('data_source', {}).get('local_path', 'data')
 DATA_FALLBACK_PRIORITY = DATA_SOURCE_CONFIG.get('data_source', {}).get('fallback_priority', ['local', 'remote'])
 
-# Auto-create directories
-auto_create_directories()
+# Auto-create directories (skip in remote mode)
+auto_create_directories(DATA_MODE)
 
 
 def merge_data_source_configs(global_config, layer_config):
