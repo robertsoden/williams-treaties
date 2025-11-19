@@ -83,12 +83,12 @@ git push origin main
 
 After the workflow completes, visit:
 ```
-https://robertsoden.github.io/ontario-environmental-data/
+https://robertsoden.io/ontario-environmental-data/
 ```
 
 You should see an index page. Test data access:
 ```
-https://robertsoden.github.io/ontario-environmental-data/data/processed/boundaries/williams_treaty.geojson
+https://robertsoden.io/ontario-environmental-data/data/processed/boundaries/williams_treaty.geojson
 ```
 
 ---
@@ -122,7 +122,7 @@ https://robertsoden.github.io/ontario-environmental-data/data/processed/boundari
 
    | Key | Value |
    |-----|-------|
-   | `DATA_SOURCE_URL` | `https://robertsoden.github.io/ontario-environmental-data` |
+   | `DATA_SOURCE_URL` | `https://robertsoden.io/ontario-environmental-data` |
    | `DATA_MODE` | `remote` |
    | `PYTHON_VERSION` | `3.11.0` |
 
@@ -163,7 +163,7 @@ Environment variables are already defined in `render.yaml`:
 ```yaml
 envVars:
   - key: DATA_SOURCE_URL
-    value: https://robertsoden.github.io/ontario-environmental-data
+    value: https://robertsoden.io/ontario-environmental-data
   - key: PYTHON_VERSION
     value: 3.11.0
 ```
@@ -210,7 +210,7 @@ Now, every push to `main` will automatically deploy to Render!
 3. Toggle map layers on/off
 4. You should see requests to:
    ```
-   https://robertsoden.github.io/ontario-environmental-data/data/processed/...
+   https://robertsoden.io/ontario-environmental-data/data/processed/...
    ```
 5. Verify they return 200 OK status
 
@@ -248,7 +248,7 @@ Verify they load without errors.
 **Solution:**
 1. Verify GitHub Pages is enabled in ontario-environmental-data repo
 2. Check workflow ran successfully
-3. Visit `https://robertsoden.github.io/ontario-environmental-data/` to verify
+3. Visit `https://robertsoden.io/ontario-environmental-data/` to verify
 
 ### Issue: Map shows but layers don't load
 

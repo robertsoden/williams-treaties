@@ -8,6 +8,6 @@ services:
     startCommand: python web/server.py --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATA_SOURCE_URL
-        value: https://robertsoden.github.io/ontario-environmental-data
+        value: https://robertsoden.io/ontario-environmental-data
       - key: PYTHON_VERSION
         value: 3.11.0

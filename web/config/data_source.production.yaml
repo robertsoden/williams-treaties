@@ -4,7 +4,7 @@
 
 data_source:
   # Production: Use GitHub Pages for data
-  base_url: "https://robertsoden.github.io/ontario-environmental-data"
+  base_url: "https://robertsoden.io/ontario-environmental-data"
 
   # Fallback disabled in production (rely on external source)
   fallback_to_local: false
@@ -21,6 +21,7 @@ path_mappings: {}
 cors:
   enabled: true
   allowed_origins:
+    - "https://robertsoden.io"
     - "https://robertsoden.github.io"
     - "*"  # Allow all origins in production
 
