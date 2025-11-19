@@ -1,0 +1,107 @@
+name: Verify Deployment Configuration
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify configuration files
+        run: |
+          echo "✅ Checking configuration files..."
+
+          # Check render.yaml exists
+          if [ -f render.yaml ]; then
+            echo "✓ render.yaml found"
+          else
+            echo "✗ render.yaml not found"
+            exit 1
+          fi
+
+          # Check data source configuration
+          if [ -f web/config/data_source.production.yaml ]; then
+            echo "✓ Production data source config found"
+          else
+            echo "✗ Production data source config not found"
+            exit 1
+          fi
+
+          # Check layers configuration
+          if [ -f web/config/layers.yaml ]; then
+            echo "✓ Layers configuration found"
+          else
+            echo "✗ Layers configuration not found"
+            exit 1
+          fi
+
+      - name: Test server startup
+        run: |
+          echo "✅ Testing server can start..."
+          export DATA_SOURCE_URL="https://robertsoden.github.io/ontario-environmental-data"
+          export DATA_MODE="remote"
+
+          # Start server in background
+          timeout 10 python web/server.py --port 8000 &
+          SERVER_PID=$!
+
+          # Wait for server to start
+          sleep 5
+
+          # Test if server is running
+          if ps -p $SERVER_PID > /dev/null; then
+            echo "✓ Server started successfully"
+            kill $SERVER_PID
+          else
+            echo "✗ Server failed to start"
+            exit 1
+          fi
+
+      - name: Verify data source URL
+        run: |
+          echo "✅ Verifying data source configuration..."
+          python -c "
+          import yaml
+          with open('web/config/data_source.production.yaml', 'r') as f:
+              config = yaml.safe_load(f)
+              url = config['data_source']['base_url']
+              print(f'✓ Data source URL: {url}')
+              assert url == 'https://robertsoden.github.io/ontario-environmental-data', 'URL mismatch'
+          "
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "========================================="
+          echo "✅ Deployment Configuration Verified"
+          echo "========================================="
+          echo ""
+          echo "Ready to deploy to Render!"
+          echo ""
+          echo "Data Source: https://robertsoden.github.io/ontario-environmental-data"
+          echo ""
+          echo "Next steps:"
+          echo "1. Set up GitHub Pages in ontario-environmental-data repo"
+          echo "2. Connect this repo to Render"
+          echo "3. Set environment variables in Render dashboard"
+          echo ""
