@@ -11,11 +11,40 @@ class LayerManager {
         this.layerState = {};
         this.loadingLayers = new Set(); // Track layers currently being loaded
         this.eventHandlers = new Map(); // Store event handlers for cleanup
+        this.dataAvailability = {}; // Track which layers have available data
 
         // Initialize layer state
         this.config.layers.forEach(layer => {
             this.layerState[layer.id] = layer.initial_visibility || false;
         });
+    }
+
+    /**
+     * Check data availability for all layers
+     * Returns a promise that resolves with availability data
+     */
+    async checkDataAvailability() {
+        try {
+            const response = await fetch('/api/layer-status');
+            const statusData = await response.json();
+
+            // Build a map of layer_id => data_exists
+            statusData.layers.forEach(layer => {
+                this.dataAvailability[layer.id] = layer.data_exists;
+            });
+
+            console.log('✓ Data availability check complete:', this.dataAvailability);
+            return this.dataAvailability;
+        } catch (error) {
+            console.warn('⚠️ Could not check data availability:', error.message);
+            // If check fails, assume all active layers are available (fallback)
+            this.config.layers.forEach(layer => {
+                if (layer.active !== false) {
+                    this.dataAvailability[layer.id] = true;
+                }
+            });
+            return this.dataAvailability;
+        }
     }
 
     /**
@@ -52,7 +81,13 @@ class LayerManager {
         this.config.layers.forEach(layer => {
             // Skip inactive layers (default to true if not specified)
             if (layer.active === false) {
-                console.log(`⊘ Layer "${layer.name}" is inactive, skipping UI generation`);
+                console.log(`⊘ Layer "${layer.name}" is inactive (admin disabled)`);
+                return;
+            }
+
+            // Skip layers where data doesn't exist
+            if (this.dataAvailability[layer.id] === false) {
+                console.log(`⊘ Layer "${layer.name}" data not available, skipping`);
                 return;
             }
 

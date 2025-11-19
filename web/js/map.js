@@ -176,13 +176,20 @@ async function initializeLayers() {
         // Create layer manager
         layerManager = new LayerManager(map, layerConfig);
 
-        // Generate UI from configuration
+        // Check data availability before generating UI
+        console.log('Checking data availability...');
+        await layerManager.checkDataAvailability();
+
+        // Generate UI from configuration (will only show layers with available data)
         layerManager.generateUI();
 
         // Load initial layers (non-lazy layers that start visible and are active)
         for (const layer of layerConfig.layers) {
             // Skip inactive layers (default to true if not specified)
             if (layer.active === false) continue;
+
+            // Skip layers without data
+            if (layerManager.dataAvailability[layer.id] === false) continue;
 
             if (layer.initial_visibility && !layer.lazy_load) {
                 console.log(`Loading initial layer: ${layer.name}`);
