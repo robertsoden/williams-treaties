@@ -317,6 +317,18 @@ def list_layers():
     return jsonify(layers)
 
 
+@app.route('/api/config')
+def map_config():
+    """Return map configuration including Mapbox token from environment."""
+    mapbox_token = os.environ.get('MAPBOX_TOKEN', '')
+
+    return jsonify({
+        'mapbox_token': mapbox_token,
+        'center': [-79.05, 44.3],
+        'zoom': 9
+    })
+
+
 @app.route('/api/info')
 def app_info():
     """Return application information."""
@@ -343,6 +355,91 @@ def data_source_info():
         'fallback_priority': DATA_FALLBACK_PRIORITY,
         'cache_enabled': DATA_SOURCE_CONFIG.get('cache', {}).get('enabled', False)
     })
+
+
+@app.route('/api/layer-status')
+def layer_status():
+    """
+    Diagnostic endpoint: Check availability of all layers and their data files.
+    Returns status of each layer including whether data exists.
+    """
+    layers_config_file = CONFIG_DIR / 'layers.yaml'
+
+    if not layers_config_file.exists():
+        return jsonify({'error': 'Layer configuration file not found'}), 404
+
+    try:
+        with open(layers_config_file, 'r') as f:
+            config = yaml.safe_load(f)
+    except Exception as e:
+        return jsonify({'error': f'Failed to load layer configuration: {str(e)}'}), 500
+
+    layers = config.get('layers', [])
+    results = {
+        'summary': {
+            'total': len(layers),
+            'active': 0,
+            'inactive': 0,
+            'data_available': 0,
+            'data_missing': 0
+        },
+        'layers': []
+    }
+
+    for layer in layers:
+        layer_id = layer.get('id', 'unknown')
+        layer_name = layer.get('name', 'Unknown')
+        active = layer.get('active', True)
+        data_url = layer.get('data_url', '')
+
+        # Check if data exists
+        data_exists = False
+        error_msg = None
+
+        if data_url:
+            if DATA_MODE == 'remote' and DATA_REMOTE_URL:
+                # Check remote URL
+                try:
+                    # Remove /data/ prefix and construct full URL
+                    file_path = data_url.replace('/data/', '')
+                    full_url = urljoin(DATA_REMOTE_URL + '/', file_path)
+                    response = requests.head(full_url, timeout=5)
+                    data_exists = response.status_code == 200
+                    if not data_exists:
+                        error_msg = f'HTTP {response.status_code}'
+                except Exception as e:
+                    error_msg = str(e)
+            elif DATA_MODE == 'local':
+                # Check local file
+                local_file = DATA_DIR / data_url.replace('/data/', '')
+                data_exists = local_file.exists()
+                if not data_exists:
+                    error_msg = 'File not found locally'
+
+        # Update summary counts
+        if active:
+            results['summary']['active'] += 1
+        else:
+            results['summary']['inactive'] += 1
+
+        if data_exists:
+            results['summary']['data_available'] += 1
+        else:
+            results['summary']['data_missing'] += 1
+
+        # Add layer info
+        results['layers'].append({
+            'id': layer_id,
+            'name': layer_name,
+            'active': active,
+            'data_url': data_url,
+            'data_exists': data_exists,
+            'error': error_msg,
+            'category': layer.get('category', 'unknown'),
+            'type': layer.get('type', 'unknown')
+        })
+
+    return jsonify(results)
 
 
 def convert_keys_to_strings(obj):

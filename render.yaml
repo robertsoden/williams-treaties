@@ -11,5 +11,7 @@ services:
         value: https://robertsoden.io/ontario-environmental-data
       - key: DATA_MODE
         value: remote
+      - key: MAPBOX_TOKEN
+        sync: false  # Set this in Render dashboard (not committed to repo)
       - key: PYTHON_VERSION
         value: 3.11.0

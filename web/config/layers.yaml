@@ -82,7 +82,7 @@ layers:
     data_url: /data/processed/boundaries/ontario_reserves.geojson
     initial_visibility: false
     status: available
-    active: true
+    active: false  # Disabled: No data file available yet
     lazy_load: true
 
     style:
@@ -119,7 +119,7 @@ layers:
     data_url: /data/processed/boundaries/ontario_municipalities.geojson
     initial_visibility: false
     status: available
-    active: true
+    active: false  # Disabled: No data file available yet
     lazy_load: true
 
     style:
@@ -153,7 +153,7 @@ layers:
     data_url: /data/processed/boundaries/conservation_authorities.geojson
     initial_visibility: false
     status: available
-    active: true
+    active: false  # Disabled: No data file available yet
     lazy_load: true
 
     style:
@@ -187,7 +187,7 @@ layers:
     data_url: /data/processed/communities/williams_treaty_reserves.geojson
     initial_visibility: false
     status: available
-    active: true  # Set to false to hide from UI while keeping configuration
+    active: false  # Disabled: No data file available yet
     lazy_load: true
 
     style:
@@ -239,7 +239,7 @@ layers:
     data_url: /data/processed/charities/environmental_organizations.geojson
     initial_visibility: false
     status: available
-    active: true  # Set to false to temporarily remove from UI
+    active: false  # Disabled: No data file available yet
 
     style:
       circle:
