@@ -25,14 +25,26 @@
         // Fetch and display layer configuration
         async function loadLayers() {
             try {
-                const response = await fetch('/api/layer-config');
-                const config = await response.json();
+                // Load both layer config and data availability
+                const [configResponse, statusResponse] = await Promise.all([
+                    fetch('/api/layer-config'),
+                    fetch('/api/layer-status')
+                ]);
+
+                const config = await configResponse.json();
+                const status = await statusResponse.json();
 
                 if (config.error) {
                     throw new Error(config.error);
                 }
 
-                displayLayers(config);
+                // Build data availability map
+                const dataAvailability = {};
+                status.layers.forEach(layer => {
+                    dataAvailability[layer.id] = layer.data_exists;
+                });
+
+                displayLayers(config, dataAvailability);
             } catch (error) {
                 document.getElementById('layer-content').innerHTML = `
                     <div class="error">
@@ -43,7 +55,7 @@
             }
         }
 
-        function displayLayers(config) {
+        function displayLayers(config, dataAvailability) {
             const content = document.getElementById('layer-content');
             const categories = config.categories || [];
             const layers = config.layers || [];
@@ -58,9 +70,12 @@
                 };
             });
 
-            // Add layers to their categories (only active layers)
+            // Add layers to their categories (only active layers with available data)
             layers.forEach(layer => {
-                if (layer.active !== false && layersByCategory[layer.category]) {
+                const isActive = layer.active !== false;
+                const hasData = dataAvailability[layer.id] !== false;
+
+                if (isActive && hasData && layersByCategory[layer.category]) {
                     layersByCategory[layer.category].layers.push(layer);
                 }
             });
