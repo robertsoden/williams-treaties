@@ -228,9 +228,6 @@ layers:
           field: AREA_SQKM
           format: '{value:.2f} km²'
 
-    info:
-      description: Reserve boundaries for 7 communities
-
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
