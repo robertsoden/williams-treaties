@@ -15,7 +15,7 @@ data_source:
 
   # Remote data source URL (used when mode is 'remote' or 'hybrid')
   # This is where external data is hosted (GitHub Pages, CDN, etc.)
-  remote_url: "https://robertsoden.github.io/ontario-environmental-data"
+  remote_url: "https://robertsoden.io/ontario-environmental-data"
 
   # Local data directory (relative to project root)
   local_path: "data"
@@ -62,6 +62,7 @@ env_overrides:
 cors:
   enabled: true
   allowed_origins:
+    - "https://robertsoden.io"
     - "https://robertsoden.github.io"
     - "http://localhost:*"
     - "http://127.0.0.1:*"

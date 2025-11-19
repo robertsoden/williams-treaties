@@ -46,7 +46,7 @@ The treaty area encompasses parts of:
 pip install flask flask-cors pyyaml
 
 # Run with remote data from GitHub Pages
-export DATA_SOURCE_URL="https://robertsoden.github.io/ontario-environmental-data"
+export DATA_SOURCE_URL="https://robertsoden.io/ontario-environmental-data"
 python web/server.py
 
 # Open browser to http://localhost:8000
@@ -110,13 +110,13 @@ Configure where the application loads data from:
 ```yaml
 data_source:
   mode: local  # local | remote | hybrid
-  remote_url: "https://robertsoden.github.io/ontario-environmental-data"
+  remote_url: "https://robertsoden.io/ontario-environmental-data"
   fallback_priority: ["local", "remote"]
 ```
 
 **Environment Variable (Production):**
 ```bash
-export DATA_SOURCE_URL="https://robertsoden.github.io/ontario-environmental-data"
+export DATA_SOURCE_URL="https://robertsoden.io/ontario-environmental-data"
 export DATA_MODE="remote"
 ```
 
@@ -262,7 +262,7 @@ The `render.yaml` file provides one-click deployment:
 
 1. Connect your GitHub repository to Render
 2. Render automatically detects `render.yaml`
-3. Set environment variable: `DATA_SOURCE_URL=https://robertsoden.github.io/ontario-environmental-data`
+3. Set environment variable: `DATA_SOURCE_URL=https://robertsoden.io/ontario-environmental-data`
 4. Deploy
 
 ### Other Platforms
@@ -271,7 +271,7 @@ For Heroku, Railway, Fly.io, etc.:
 
 ```bash
 # Set environment variable
-DATA_SOURCE_URL=https://robertsoden.github.io/ontario-environmental-data
+DATA_SOURCE_URL=https://robertsoden.io/ontario-environmental-data
 
 # Install dependencies
 pip install -r requirements.txt
