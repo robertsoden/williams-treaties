@@ -1,8 +1,0 @@
-{
-"type": "FeatureCollection",
-"name": "williams_treaty_aoi_utm",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26917" } },
-"features": [
-{ "type": "Feature", "properties": { "name": "Williams Treaty Territories", "description": "Approximate area covering Williams Treaty First Nations territories", "source": "Manual bounding box", "buffer_applied": false }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 717199.418179416563362, 4853203.158962861634791 ], [ 713540.975785131566226, 4964279.976186872459948 ], [ 594906.866743381600827, 4961433.686968434602022 ], [ 596531.83296067698393, 4850359.39706036541611 ], [ 717199.418179416563362, 4853203.158962861634791 ] ] ] } }
-]
-}

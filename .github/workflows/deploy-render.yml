@@ -1,0 +1,29 @@
+name: Deploy to Render
+
+on:
+  # Trigger on push to main branch
+  push:
+    branches:
+      - main
+
+  # Allow manual deployment
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+
+      - name: Verify Deployment
+        run: |
+          echo "✅ Deployment triggered successfully"
+          echo "🔗 Check your Render dashboard for deployment status"
+          echo "📊 Data source: https://robertsoden.github.io/ontario-environmental-data"

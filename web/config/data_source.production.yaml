@@ -1,0 +1,30 @@
+# Production Data Source Configuration
+# This file is used when deploying to production (Render, Railway, etc.)
+# Copy this to data_source.yaml or set DATA_SOURCE_URL environment variable
+
+data_source:
+  # Production: Use GitHub Pages for data
+  base_url: "https://robertsoden.io/ontario-environmental-data"
+
+  # Fallback disabled in production (rely on external source)
+  fallback_to_local: false
+
+  # Cache control for data files
+  cache:
+    enabled: true
+    max_age_seconds: 3600  # 1 hour
+
+# Path mappings (if needed)
+path_mappings: {}
+
+# CORS settings for external data sources
+cors:
+  enabled: true
+  allowed_origins:
+    - "https://robertsoden.io"
+    - "https://robertsoden.github.io"
+    - "*"  # Allow all origins in production
+
+# Environment variable override
+use_env_override: true
+env_var_name: "DATA_SOURCE_URL"
