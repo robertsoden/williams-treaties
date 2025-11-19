@@ -1,7 +1,7 @@
 // Williams Treaty Territories - Map Application (Config-Driven)
 
-// Configuration
-const CONFIG = {
+// Configuration - First check local config.js, then will check API
+let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
     CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || [-79.05, 44.3],
     ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 9,
@@ -13,10 +13,33 @@ const CONFIG = {
     }
 };
 
+// Fetch config from API if no local token found
+async function loadConfigFromAPI() {
+    if (CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE') {
+        // Local config already has a token
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/config');
+        const apiConfig = await response.json();
+
+        if (apiConfig.mapbox_token && apiConfig.mapbox_token !== '') {
+            CONFIG.MAPBOX_TOKEN = apiConfig.mapbox_token;
+            CONFIG.CENTER = apiConfig.center || CONFIG.CENTER;
+            CONFIG.ZOOM = apiConfig.zoom || CONFIG.ZOOM;
+            console.log('✓ Loaded Mapbox token from server environment');
+        }
+    } catch (error) {
+        console.warn('Could not load config from API:', error.message);
+    }
+}
+
 // Check if Mapbox token is configured
 if (CONFIG.MAPBOX_TOKEN === 'YOUR_MAPBOX_TOKEN_HERE') {
-    console.warn('⚠️  Mapbox token not configured. Using free OSM style instead.');
-    console.log('To use Mapbox styles, get a free token at https://account.mapbox.com/');
+    console.warn('⚠️  Mapbox token not configured locally. Checking server...');
+} else {
+    console.log('✓ Using Mapbox token from local config.js');
 }
 
 // Free OpenStreetMap style (fallback when no Mapbox token)
@@ -40,25 +63,58 @@ const FREE_OSM_STYLE = {
     }]
 };
 
-// Set Mapbox access token
-mapboxgl.accessToken = CONFIG.MAPBOX_TOKEN;
-
-// Initialize the map
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
-        ? 'mapbox://styles/mapbox/streets-v12'
-        : FREE_OSM_STYLE,
-    center: CONFIG.CENTER,
-    zoom: CONFIG.ZOOM
-});
-
-// Add navigation controls
-map.addControl(new mapboxgl.NavigationControl(), 'top-left');
-map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-
-// Global layer manager instance
+// Global variables
+let map = null;
 let layerManager = null;
+
+// Initialize map after loading config
+async function initializeMap() {
+    // Load config from API if needed
+    await loadConfigFromAPI();
+
+    // Set Mapbox access token
+    mapboxgl.accessToken = CONFIG.MAPBOX_TOKEN;
+
+    // Initialize the map
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: CONFIG.MAPBOX_TOKEN !== 'YOUR_MAPBOX_TOKEN_HERE'
+            ? 'mapbox://styles/mapbox/streets-v12'
+            : FREE_OSM_STYLE,
+        center: CONFIG.CENTER,
+        zoom: CONFIG.ZOOM
+    });
+
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+    // Continue with layer initialization when map is ready
+    map.on('load', async () => {
+        console.log('✓ Map loaded and ready');
+
+        // Check library availability
+        if (typeof parseGeoraster !== 'undefined') {
+            console.log('✓ GeoRaster loaded - raster layers available');
+        } else {
+            console.warn('❌ GeoRaster library not loaded - raster layers disabled');
+        }
+
+        if (typeof jsyaml !== 'undefined') {
+            console.log('✓ js-yaml loaded - configuration system available');
+        } else {
+            console.error('❌ js-yaml library not loaded - cannot load configuration');
+            showNotification('Required library (js-yaml) not loaded. Layer configuration unavailable.', 'error');
+            return;
+        }
+
+        // Initialize layer system
+        await initializeLayers();
+    });
+}
+
+// Start initialization when page loads
+initializeMap();
 
 // Utility functions
 function showLoading() {
@@ -167,29 +223,6 @@ function changeBasemap(style) {
         console.log('✓ Basemap changed and layers restored');
     });
 }
-
-// Initialize map
-map.on('load', async () => {
-    console.log('✓ Map loaded and ready');
-
-    // Check library availability
-    if (typeof parseGeoraster !== 'undefined') {
-        console.log('✓ GeoRaster loaded - raster layers available');
-    } else {
-        console.warn('❌ GeoRaster library not loaded - raster layers disabled');
-    }
-
-    if (typeof jsyaml !== 'undefined') {
-        console.log('✓ js-yaml loaded - configuration system available');
-    } else {
-        console.error('❌ js-yaml library not loaded - cannot load configuration');
-        showNotification('Required library (js-yaml) not loaded. Layer configuration unavailable.', 'error');
-        return;
-    }
-
-    // Initialize layer system
-    await initializeLayers();
-});
 
 // Basemap switcher event listeners
 document.addEventListener('DOMContentLoaded', () => {

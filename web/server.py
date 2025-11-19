@@ -317,6 +317,18 @@ def list_layers():
     return jsonify(layers)
 
 
+@app.route('/api/config')
+def map_config():
+    """Return map configuration including Mapbox token from environment."""
+    mapbox_token = os.environ.get('MAPBOX_TOKEN', '')
+
+    return jsonify({
+        'mapbox_token': mapbox_token,
+        'center': [-79.05, 44.3],
+        'zoom': 9
+    })
+
+
 @app.route('/api/info')
 def app_info():
     """Return application information."""
