@@ -89,6 +89,12 @@ async function initializeMap() {
     map.addControl(new mapboxgl.NavigationControl(), 'top-left');
     map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
+    // Handle map errors
+    map.on('error', (e) => {
+        console.error('❌ Map error:', e);
+        if (e.error) console.error('Error details:', e.error);
+    });
+
     // Continue with layer initialization when map is ready
     map.on('load', async () => {
         console.log('✓ Map loaded and ready');
@@ -247,12 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
             panel.classList.toggle('hidden');
         });
     }
-});
-
-// Handle map errors
-map.on('error', (e) => {
-    console.error('❌ Map error:', e);
-    if (e.error) console.error('Error details:', e.error);
 });
 
 // Debug logging
