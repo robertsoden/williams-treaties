@@ -63,11 +63,13 @@ class LayerManager {
     generateUI() {
         const controlPanel = document.getElementById('layer-control');
 
-        // Clear existing content except header
+        // Clear existing content except header, basemap section, and footer
         const header = controlPanel.querySelector('.control-header');
+        const basemapSection = controlPanel.querySelector('.control-section:has(input[name="basemap"])');
         const footer = controlPanel.querySelector('.control-footer');
         controlPanel.innerHTML = '';
         if (header) controlPanel.appendChild(header);
+        if (basemapSection) controlPanel.appendChild(basemapSection);
 
         // Group layers by category (only active layers)
         const categorizedLayers = {};
