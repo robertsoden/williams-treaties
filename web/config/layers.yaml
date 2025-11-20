@@ -37,6 +37,10 @@ categories:
     name: Community Data
     order: 7
 
+  - id: biodiversity
+    name: Biodiversity
+    order: 8
+
 # Layer definitions
 layers:
   # ============================================================================
@@ -611,6 +615,45 @@ layers:
 
     info:
       description: "Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)"
+
+  # ============================================================================
+  # BIODIVERSITY
+  # ============================================================================
+
+  - id: ebird
+    name: eBird Observations
+    category: biodiversity
+    type: point
+    data_url: /data/processed/biodiversity/ebird_observations_recent.json
+    initial_visibility: false
+    status: available
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        color: '#e74c3c'
+        opacity: 0.7
+        stroke_width: 1
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: comName
+      title_default: Bird Observation
+      fields:
+        - label: Common Name
+          field: comName
+        - label: Scientific Name
+          field: sciName
+        - label: Count
+          field: howMany
+        - label: Date
+          field: obsDt
+        - label: Location
+          field: locName
+
+    info:
+      description: Recent eBird bird observations in the Williams Treaty area
 
   # ============================================================================
   # FIRE DATA
