@@ -229,14 +229,10 @@ layers:
     name: Environmental Charities
     category: organizations
     type: point
-    data_url: /data/processed/charities/environmental_organizations.geojson
+    data_url: /data/datasets/organizations/environmental_organizations.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
+    active: true  # Now available in S3
 
     style:
       circle:
