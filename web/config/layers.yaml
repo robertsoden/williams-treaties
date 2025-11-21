@@ -220,20 +220,6 @@ layers:
 
     info:
       description: The 10 Indian Reserves of the 7 Williams Treaty First Nations
-      title_default: First Nation Reserve
-      fields:
-        - label: Reserve
-          fields: [RESERVE_NAME, reserve_name]
-          default: N/A
-        - label: Band
-          fields: [BAND_NAME, band_name]
-          default: N/A
-        - label: Area
-          field: AREA_SQKM
-          format: '{value:.2f} km²'
-
-    info:
-      description: Reserve boundaries for 7 communities
 
   # ============================================================================
   # ORGANIZATIONS
