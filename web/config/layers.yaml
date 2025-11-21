@@ -638,6 +638,7 @@ layers:
     data_url: /data/processed/biodiversity/ebird_observations_recent.json
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
 
     # Override to use local-only mode (data not in S3 yet)
