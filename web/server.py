@@ -13,7 +13,8 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from flask import Flask, send_from_directory, send_file, jsonify, redirect
+from functools import wraps
+from flask import Flask, send_from_directory, send_file, jsonify, redirect, request, Response
 from flask_cors import CORS
 import yaml
 import requests
@@ -31,6 +32,42 @@ PROJECT_ROOT = Path(__file__).parent.parent
 WEB_DIR = PROJECT_ROOT / 'web'
 DATA_DIR = PROJECT_ROOT / 'data'
 CONFIG_DIR = WEB_DIR / 'config'
+
+# Basic Authentication Configuration
+# Set via environment variable:
+#   BASIC_AUTH_PASSWORD - password for authentication (optional, disables auth if not set)
+#   Username will be ignored - only password is checked
+BASIC_AUTH_ENABLED = bool(os.getenv('BASIC_AUTH_PASSWORD'))
+BASIC_AUTH_PASSWORD = os.getenv('BASIC_AUTH_PASSWORD', '')
+
+
+def check_auth(username, password):
+    """Check if password is valid (username is ignored)."""
+    return password == BASIC_AUTH_PASSWORD
+
+
+def authenticate():
+    """Send 401 response that enables basic auth."""
+    return Response(
+        'Password required. Enter any username and the site password.',
+        401,
+        {'WWW-Authenticate': 'Basic realm="Williams Treaty Map - Password Required"'}
+    )
+
+
+def requires_auth(f):
+    """Decorator to require basic authentication for a route."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Skip auth if not enabled
+        if not BASIC_AUTH_ENABLED:
+            return f(*args, **kwargs)
+
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 
 def load_data_source_config():
@@ -188,18 +225,21 @@ def is_external_url(url):
 
 
 @app.route('/')
+@requires_auth
 def index():
     """Serve the main map application."""
     return send_file(WEB_DIR / 'index.html')
 
 
 @app.route('/<path:filename>')
+@requires_auth
 def serve_web_files(filename):
     """Serve static web files (CSS, JS, etc.)."""
     return send_from_directory(WEB_DIR, filename)
 
 
 @app.route('/data/<path:filepath>')
+@requires_auth
 def serve_data(filepath):
     """
     Serve data files (GeoJSON, GeoTIFF, etc.).
@@ -277,6 +317,7 @@ def serve_local_file(file_path):
 
 
 @app.route('/api/layers')
+@requires_auth
 def list_layers():
     """Return list of available data layers."""
     layers = {
@@ -309,6 +350,7 @@ def list_layers():
 
 
 @app.route('/api/info')
+@requires_auth
 def app_info():
     """Return application information."""
     return jsonify({
@@ -325,6 +367,7 @@ def app_info():
 
 
 @app.route('/api/data-source')
+@requires_auth
 def data_source_info():
     """Return information about the current data source configuration."""
     return jsonify({
@@ -347,6 +390,7 @@ def convert_keys_to_strings(obj):
 
 
 @app.route('/api/layer-config')
+@requires_auth
 def layer_config():
     """
     Return layer configuration from YAML file.
@@ -392,6 +436,7 @@ def layer_config():
 
 
 @app.route('/layers')
+@requires_auth
 def layers_page():
     """Serve the layers information page."""
     return send_file(WEB_DIR / 'layers.html')
@@ -440,6 +485,14 @@ def main():
         print(f'  Local Path: {DATA_DIR}')
     if DATA_MODE == 'hybrid':
         print(f'  Fallback Priority: {" → ".join(DATA_FALLBACK_PRIORITY)}')
+    print('')
+    print('Authentication:')
+    if BASIC_AUTH_ENABLED:
+        print(f'  Password Protection: ENABLED')
+        print(f'  ⚠️  Site requires password (username can be anything)')
+    else:
+        print(f'  Password Protection: DISABLED (site is public)')
+        print(f'  To enable: Set BASIC_AUTH_PASSWORD env var')
     print('')
     print('Available endpoints:')
     print(f'  Main application: http://{args.host}:{args.port}/')

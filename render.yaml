@@ -13,3 +13,7 @@ services:
         value: https://robertsoden.io/ontario-environmental-data
       - key: PYTHON_VERSION
         value: 3.11.0
+      # Optional: Enable password protection
+      # Uncomment and set in Render dashboard to require a password:
+      # - key: BASIC_AUTH_PASSWORD
+      #   sync: false  # Set manually in dashboard (username will be ignored)
