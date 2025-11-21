@@ -51,7 +51,7 @@ layers:
     name: Williams Treaty Territories
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/williams_treaty.geojson
+    data_url: /data/datasets/boundaries/williams_treaty.geojson
     initial_visibility: true
     status: available
     active: true
@@ -83,7 +83,7 @@ layers:
     name: Ontario First Nations Reserves
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/ontario_reserves.geojson
+    data_url: /data/datasets/boundaries/ontario_reserves.geojson
     initial_visibility: false
     status: available
     active: true
@@ -120,7 +120,7 @@ layers:
     name: Ontario Municipalities
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/ontario_municipalities.geojson
+    data_url: /data/datasets/boundaries/ontario_municipalities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -154,7 +154,7 @@ layers:
     name: Conservation Authorities
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/conservation_authorities.geojson
+    data_url: /data/datasets/protected_areas/conservation_authorities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -188,7 +188,7 @@ layers:
     name: Williams Treaty Reserves
     category: boundaries
     type: polygon
-    data_url: /data/processed/communities/williams_treaty_reserves.geojson
+    data_url: /data/datasets/boundaries/williams_treaty_reserves.geojson
     initial_visibility: false
     status: available
     active: true  # Set to false to hide from UI while keeping configuration
@@ -284,7 +284,7 @@ layers:
     name: Williams Treaty First Nations
     category: communities
     type: point
-    data_url: /data/processed/communities/williams_treaty_communities.geojson
+    data_url: /data/datasets/boundaries/williams_treaty_communities.geojson
     initial_visibility: false
     status: available
 
@@ -427,7 +427,7 @@ layers:
     name: Community Well-Being
     category: community_data
     type: polygon
-    data_url: /data/processed/cwb/community_wellbeing.geojson
+    data_url: /data/datasets/community/community_wellbeing_ontario.geojson
     initial_visibility: false
     status: available
     lazy_load: true
@@ -663,7 +663,7 @@ layers:
     name: Fire Perimeters
     category: fire
     type: polygon
-    data_url: /data/processed/fire/fire_perimeters_1976_2024.geojson
+    data_url: /data/datasets/environmental/fire_perimeters_1976_2024.geojson
     initial_visibility: false
     status: available
     lazy_load: true
