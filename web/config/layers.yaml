@@ -232,7 +232,11 @@ layers:
     data_url: /data/processed/charities/environmental_organizations.geojson
     initial_visibility: false
     status: available
-    active: true  # Set to false to temporarily remove from UI
+    active: false  # Deactivated - data not in S3 yet
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -303,7 +307,12 @@ layers:
     data_url: /data/processed/infrastructure/infrastructure_projects.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -350,12 +359,13 @@ layers:
     data_url: /data/processed/water/water_advisories.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
 
     # Per-layer data source configuration (overrides global defaults)
-    # This layer uses local data only with source metadata
+    # This layer uses local data only (data not in S3 yet)
     data_source:
-      # Use global defaults (local mode), just add metadata
+      mode: local
       source_info:
         provider: "Ontario Ministry of the Environment, Conservation and Parks"
         dataset: "Drinking Water Advisories"
@@ -468,7 +478,12 @@ layers:
     data_url: /data/processed/csicp/csicp_funding.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -505,8 +520,13 @@ layers:
     data_url: /data/processed/ndvi/ndvi_example_2024-06.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       opacity: 0.7
@@ -551,8 +571,13 @@ layers:
     data_url: /data/processed/dem/elevation.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     # Coordinate adjustment to fix alignment issues
     coordinate_adjustment:
@@ -614,6 +639,10 @@ layers:
     initial_visibility: false
     status: available
     lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -720,8 +749,13 @@ layers:
     data_url: /data/processed/fuel/fuel_types_web.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       opacity: 0.6
