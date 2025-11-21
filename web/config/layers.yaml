@@ -221,6 +221,66 @@ layers:
     info:
       description: The 10 Indian Reserves of the 7 Williams Treaty First Nations
 
+  - id: provincial_parks
+    name: Provincial Parks
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/protected_areas/provincial_parks.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#66c2a4'
+        opacity: 0.3
+      outline:
+        color: '#238b45'
+        width: 1.5
+        opacity: 0.7
+
+    popup:
+      title_fields: [name, official_name]
+      fields:
+        - label: Official Name
+          field: official_name
+        - label: Designation
+          field: designation
+        - label: Managing Authority
+          field: managing_authority
+
+    info:
+      description: Ontario Provincial Parks and protected areas
+
+  - id: watersheds
+    name: Watersheds
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/watersheds.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#3182bd'
+        opacity: 0.1
+      outline:
+        color: '#08519c'
+        width: 1
+        opacity: 0.5
+
+    popup:
+      title_fields: [name, NAME]
+      fields:
+        - label: Watershed Name
+          fields: [name, NAME]
+
+    info:
+      description: Ontario watershed boundaries
+
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
