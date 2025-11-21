@@ -233,25 +233,68 @@ layers:
 
     style:
       fill:
-        color: '#66c2a4'
-        opacity: 0.3
+        # Color by park class
+        color:
+          type: categorical
+          field: PROVINCIAL_PARK_CLASS_ENG
+          values:
+            Wilderness: '#006d2c'           # Dark green - most protected
+            Natural Environment: '#31a354'  # Medium green
+            Waterway: '#74c476'             # Light green
+            Recreation: '#a1d99b'           # Pale green
+            Cultural Heritage: '#8c6bb1'    # Purple for cultural sites
+          default: '#66c2a4'                # Teal for others
+        opacity: 0.4
       outline:
         color: '#238b45'
-        width: 1.5
-        opacity: 0.7
+        width: 2
+        opacity: 0.8
 
     popup:
-      title_fields: [name, official_name]
+      title_field: PROTECTED_AREA_NAME_ENG
       fields:
-        - label: Official Name
-          field: official_name
-        - label: Designation
-          field: designation
-        - label: Managing Authority
-          field: managing_authority
+        - label: Short Name
+          field: COMMON_SHORT_NAME
+        - label: Park Class
+          field: PROVINCIAL_PARK_CLASS_ENG
+        - label: IUCN Category
+          field: IUCN_CATEGORY
+        - label: Area (ha)
+          field: REGULATED_AREA
+          format: '{value:,.0f} ha'
+        - label: Established
+          field: PROTDATE
+        - label: Status
+          field: STATUS_ENG
+        - label: Management
+          field: MANAGEMENT_ENG
+        - label: Website
+          field: URL
+          type: link
+
+    legend:
+      type: items
+      title: Provincial Parks
+      items:
+        - color: rgba(0, 109, 44, 0.4)
+          border: 2px solid #238b45
+          label: Wilderness
+        - color: rgba(49, 163, 84, 0.4)
+          border: 2px solid #238b45
+          label: Natural Environment
+        - color: rgba(116, 196, 118, 0.4)
+          border: 2px solid #238b45
+          label: Waterway
+        - color: rgba(161, 217, 155, 0.4)
+          border: 2px solid #238b45
+          label: Recreation
+        - color: rgba(140, 107, 177, 0.4)
+          border: 2px solid #238b45
+          label: Cultural Heritage
+      description: Parks classified by primary purpose
 
     info:
-      description: Ontario Provincial Parks and protected areas
+      description: Ontario Provincial Parks classified by conservation and recreation purpose
 
   - id: watersheds
     name: Watersheds
@@ -265,21 +308,49 @@ layers:
 
     style:
       fill:
-        color: '#3182bd'
-        opacity: 0.1
+        color: '#4292c6'
+        opacity: 0.15
       outline:
         color: '#08519c'
-        width: 1
-        opacity: 0.5
+        width: 1.5
+        opacity: 0.6
 
     popup:
-      title_fields: [name, NAME]
+      title_fields: [NAME1, NAME2]
+      title_default: Watershed
       fields:
-        - label: Watershed Name
-          fields: [name, NAME]
+        - label: Primary Watershed
+          field: NAME1
+        - label: Secondary Watershed
+          field: NAME2
+        - label: Tertiary Watershed
+          field: NAME3
+          optional: true
+        - label: Quaternary Watershed
+          field: NAME4
+          optional: true
+        - label: Area (hectares)
+          field: AREA_HA
+          format: '{value:,.2f} ha'
+        - label: Area (acres)
+          field: AREA_ACRE
+          format: '{value:,.2f} acres'
+        - label: Watershed Code
+          field: CODE6
+        - label: Data Source
+          field: SOURCE
+
+    legend:
+      type: items
+      title: Watersheds
+      items:
+        - color: rgba(66, 146, 198, 0.15)
+          border: 1.5px solid #08519c
+          label: Watershed boundary
+      description: Hierarchical watershed drainage areas
 
     info:
-      description: Ontario watershed boundaries
+      description: Ontario watersheds showing hierarchical drainage basins from primary to quaternary levels
 
   # ============================================================================
   # ORGANIZATIONS
