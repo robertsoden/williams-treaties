@@ -10,7 +10,7 @@ services:
       - key: DATA_MODE
         value: remote
       - key: DATA_SOURCE_URL
-        value: https://robertsoden.io/ontario-environmental-data
+        value: https://ontario-environmental-data.s3.us-east-1.amazonaws.com
       - key: PYTHON_VERSION
         value: 3.11.0
       # Optional: Enable password protection
