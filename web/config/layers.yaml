@@ -404,6 +404,7 @@ layers:
     data_url: /data/datasets/boundaries/williams_treaty_communities.geojson
     initial_visibility: false
     status: available
+    active: true
 
     style:
       circle:
@@ -553,6 +554,7 @@ layers:
     data_url: /data/datasets/community/community_wellbeing_ontario.geojson
     initial_visibility: false
     status: available
+    active: true
     lazy_load: true
 
     style:
@@ -809,6 +811,7 @@ layers:
     data_url: /data/datasets/environmental/fire_perimeters_1976_2024.geojson
     initial_visibility: false
     status: available
+    active: true
     lazy_load: true
 
     # Per-layer data source configuration
