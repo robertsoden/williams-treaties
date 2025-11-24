@@ -921,3 +921,498 @@ layers:
 
     info:
       description: Canadian FBP System fuel types
+
+  # ============================================================================
+  # HYDROLOGY / WATER
+  # ============================================================================
+
+  - id: wetlands
+    name: Wetlands
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/wetlands.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#7fcdbb'
+        opacity: 0.5
+      outline:
+        color: '#2c7fb8'
+        width: 1
+        opacity: 0.7
+
+    popup:
+      title_field: WETLAND_TYPE
+      title_default: Wetland
+      fields:
+        - label: Type
+          field: WETLAND_TYPE
+        - label: Significance
+          field: WETLAND_SIGNIFICANCE
+        - label: Area (ha)
+          field: AREA_HA
+          format: '{value:,.2f} ha'
+        - label: Evaluation Status
+          field: EVALUATED_WETLAND_IND
+
+    info:
+      description: Provincial wetlands with ecological significance ratings from Ontario GeoHub
+
+  - id: watercourses
+    name: Rivers & Streams
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/watercourses.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#3182bd'
+        opacity: 0.6
+      outline:
+        color: '#08519c'
+        width: 1.5
+        opacity: 0.8
+
+    popup:
+      title_field: OFFICIAL_NAME_UPPER
+      title_default: Watercourse
+      fields:
+        - label: Name
+          field: OFFICIAL_NAME_UPPER
+        - label: Type
+          field: WATERCOURSE_TYPE
+
+    info:
+      description: Ontario Hydro Network - rivers and streams (1:10M scale)
+
+  - id: waterbodies
+    name: Lakes & Ponds
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/waterbodies.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#6baed6'
+        opacity: 0.6
+      outline:
+        color: '#2171b5'
+        width: 1
+        opacity: 0.8
+
+    popup:
+      title_field: OFFICIAL_NAME_UPPER
+      title_default: Waterbody
+      fields:
+        - label: Name
+          field: OFFICIAL_NAME_UPPER
+        - label: Type
+          field: WATERBODY_TYPE
+
+    info:
+      description: Ontario Hydro Network - lakes and ponds (1:10M scale)
+
+  - id: watersheds_tertiary
+    name: Watersheds (Tertiary)
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/watersheds_tertiary.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#9ecae1'
+        opacity: 0.2
+      outline:
+        color: '#3182bd'
+        width: 2
+        opacity: 0.7
+
+    popup:
+      title_field: TERTIARY_WATERSHED_NAME
+      title_default: Tertiary Watershed
+      fields:
+        - label: Name
+          field: TERTIARY_WATERSHED_NAME
+        - label: Code
+          field: TERTIARY_WATERSHED_CODE
+        - label: Area (ha)
+          field: AREA_HA
+          format: '{value:,.0f} ha'
+
+    info:
+      description: Ontario Watershed Boundaries - Tertiary level drainage areas
+
+  - id: watersheds_quaternary
+    name: Watersheds (Quaternary)
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/watersheds_quaternary.geojson
+    initial_visibility: false
+    status: available
+    active: false
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#c6dbef'
+        opacity: 0.15
+      outline:
+        color: '#6baed6'
+        width: 1
+        opacity: 0.5
+
+    popup:
+      title_field: QUATERNARY_WATERSHED_NAME
+      title_default: Quaternary Watershed
+      fields:
+        - label: Name
+          field: QUATERNARY_WATERSHED_NAME
+        - label: Code
+          field: QUATERNARY_WATERSHED_CODE
+        - label: Area (ha)
+          field: AREA_HA
+          format: '{value:,.0f} ha'
+
+    info:
+      description: Ontario Watershed Boundaries - Quaternary (smallest) drainage areas. Large dataset - disabled by default.
+
+  - id: lake_simcoe_watershed
+    name: Lake Simcoe Watershed
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/lake_simcoe_watershed.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#41b6c4'
+        opacity: 0.2
+      outline:
+        color: '#225ea8'
+        width: 2.5
+        opacity: 0.8
+
+    popup:
+      title_field: SUBWATERSHED_NAME
+      title_default: Lake Simcoe Subwatershed
+      fields:
+        - label: Subwatershed
+          field: SUBWATERSHED_NAME
+        - label: Area (ha)
+          field: AREA_HA
+          format: '{value:,.2f} ha'
+
+    info:
+      description: Lake Simcoe Protection Act Watershed Boundary - important for water quality protection
+
+  - id: dams
+    name: Dams
+    category: boundaries
+    type: point
+    data_url: /data/datasets/environmental/dams.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        color: '#d95f0e'
+        opacity: 0.8
+        stroke_width: 1.5
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: DAM_NAME
+      title_default: Dam
+      fields:
+        - label: Name
+          field: DAM_NAME
+        - label: Type
+          field: DAM_TYPE
+        - label: Height (m)
+          field: DAM_HEIGHT
+          optional: true
+        - label: Owner
+          field: OWNER_NAME
+          optional: true
+        - label: Watercourse
+          field: WATERCOURSE_NAME
+          optional: true
+
+    info:
+      description: Ontario Dam Inventory - 876 dams in the Williams Treaty area
+
+  # ============================================================================
+  # ECOLOGY / PROTECTED AREAS
+  # ============================================================================
+
+  - id: conservation_reserves
+    name: Conservation Reserves
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/protected_areas/conservation_reserves.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#74c476'
+        opacity: 0.4
+      outline:
+        color: '#238b45'
+        width: 2
+        opacity: 0.8
+
+    popup:
+      title_field: ENGLISH_NAME
+      title_default: Conservation Reserve
+      fields:
+        - label: Name
+          field: ENGLISH_NAME
+        - label: Regulation
+          field: REGULATION_NUMBER
+          optional: true
+        - label: Area (ha)
+          field: OFFICIAL_AREA_HA
+          format: '{value:,.2f} ha'
+          optional: true
+
+    info:
+      description: Ontario Conservation Reserves - regulated protected natural areas
+
+  - id: federal_protected
+    name: Federal Protected Areas
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/protected_areas/federal_protected.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#fd8d3c'
+        opacity: 0.4
+      outline:
+        color: '#d94701'
+        width: 2
+        opacity: 0.8
+
+    popup:
+      title_field: ENGLISH_NAME
+      title_default: Federal Protected Area
+      fields:
+        - label: Name
+          field: ENGLISH_NAME
+        - label: Type
+          field: PROTECTED_AREA_TYPE
+          optional: true
+
+    info:
+      description: Federal protected areas including National Parks and Wildlife Areas
+
+  - id: ecodistricts
+    name: Ecodistricts
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/ecodistricts.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#bcbddc'
+        opacity: 0.25
+      outline:
+        color: '#756bb1'
+        width: 1.5
+        opacity: 0.6
+
+    popup:
+      title_field: ECODISTRICT_NAME
+      title_default: Ecodistrict
+      fields:
+        - label: Name
+          field: ECODISTRICT_NAME
+        - label: Code
+          field: ECODISTRICT_CODE
+        - label: Ecoregion
+          field: ECOREGION_NAME
+          optional: true
+
+    info:
+      description: Ontario Ecodistricts - ecological classification units for biodiversity planning
+
+  - id: ecoregions
+    name: Ecoregions
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/ecoregions.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#dadaeb'
+        opacity: 0.2
+      outline:
+        color: '#9e9ac8'
+        width: 2
+        opacity: 0.7
+
+    popup:
+      title_field: ECOREGION_NAME
+      title_default: Ecoregion
+      fields:
+        - label: Name
+          field: ECOREGION_NAME
+        - label: Code
+          field: ECOREGION_CODE
+        - label: Ecozone
+          field: ECOZONE_NAME
+          optional: true
+
+    info:
+      description: Ontario Ecoregions - broad ecological classification zones
+
+  # ============================================================================
+  # RECREATION / TRAILS
+  # ============================================================================
+
+  - id: trails
+    name: Recreational Trails
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/infrastructure/trails.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#8c6d31'
+        opacity: 0.7
+      outline:
+        color: '#6b4423'
+        width: 2
+        opacity: 0.9
+
+    popup:
+      title_field: TRAIL_NAME
+      title_default: Trail
+      fields:
+        - label: Name
+          field: TRAIL_NAME
+        - label: Trail Class
+          field: TRAIL_CLASS
+          optional: true
+        - label: Surface
+          field: TRAIL_SURFACE_TYPE
+          optional: true
+        - label: Permitted Uses
+          field: PERMITTED_USES
+          optional: true
+        - label: Managing Agency
+          field: MANAGING_AGENCY
+          optional: true
+
+    info:
+      description: Ontario Recreational Trail Network - 1,901 trail segments
+
+  - id: trail_access
+    name: Trail Access Points
+    category: boundaries
+    type: point
+    data_url: /data/datasets/infrastructure/trail_access_points.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 6
+        color: '#7a5230'
+        opacity: 0.9
+        stroke_width: 2
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: ACCESS_POINT_NAME
+      title_default: Trail Access Point
+      fields:
+        - label: Name
+          field: ACCESS_POINT_NAME
+        - label: Type
+          field: ACCESS_POINT_TYPE
+          optional: true
+        - label: Parking
+          field: PARKING_IND
+          optional: true
+
+    info:
+      description: Ontario Trail Network access points and trailheads - 329 locations
+
+  # ============================================================================
+  # TERRAIN
+  # ============================================================================
+
+  - id: contours
+    name: Contour Lines
+    category: topography
+    type: polygon
+    data_url: /data/datasets/environmental/contours.geojson
+    initial_visibility: false
+    status: available
+    active: false
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#969696'
+        opacity: 0.3
+      outline:
+        color: '#636363'
+        width: 0.5
+        opacity: 0.5
+
+    popup:
+      title: Contour Line
+      fields:
+        - label: Elevation (m)
+          field: CONTOUR_ELEVATION
+        - label: Type
+          field: CONTOUR_TYPE
+          optional: true
+
+    info:
+      description: Topographic contour lines - 1,922 features. Large dataset - disabled by default.
