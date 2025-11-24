@@ -11,11 +11,11 @@ data_source:
   # - local: Only serve from local /data/ directory
   # - remote: Only redirect to external URL (set in remote_url)
   # - hybrid: Try both sources based on fallback_priority
-  mode: local  # Default for development
+  mode: hybrid  # Use hybrid mode to support both S3 and local data
 
   # Remote data source URL (used when mode is 'remote' or 'hybrid')
-  # This is where external data is hosted (GitHub Pages, CDN, etc.)
-  remote_url: "https://robertsoden.io/ontario-environmental-data"
+  # This is where external data is hosted (S3, GitHub Pages, CDN, etc.)
+  remote_url: "https://ontario-environmental-data.s3.us-east-1.amazonaws.com"
 
   # Local data directory (relative to project root)
   local_path: "data"

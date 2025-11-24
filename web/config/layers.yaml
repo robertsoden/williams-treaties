@@ -37,6 +37,10 @@ categories:
     name: Community Data
     order: 7
 
+  - id: biodiversity
+    name: Biodiversity
+    order: 8
+
 # Layer definitions
 layers:
   # ============================================================================
@@ -47,7 +51,7 @@ layers:
     name: Williams Treaty Territories
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/williams_treaty.geojson
+    data_url: /data/datasets/boundaries/williams_treaty.geojson
     initial_visibility: true
     status: available
     active: true
@@ -79,10 +83,10 @@ layers:
     name: Ontario First Nations Reserves
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/ontario_reserves.geojson
+    data_url: /data/datasets/boundaries/ontario_reserves.geojson
     initial_visibility: false
     status: available
-    active: false  # Disabled: No data file available yet
+    active: true
     lazy_load: true
 
     style:
@@ -116,10 +120,10 @@ layers:
     name: Ontario Municipalities
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/ontario_municipalities.geojson
+    data_url: /data/datasets/boundaries/ontario_municipalities.geojson
     initial_visibility: false
     status: available
-    active: false  # Disabled: No data file available yet
+    active: true
     lazy_load: true
 
     style:
@@ -150,10 +154,10 @@ layers:
     name: Conservation Authorities
     category: boundaries
     type: polygon
-    data_url: /data/processed/boundaries/conservation_authorities.geojson
+    data_url: /data/datasets/protected_areas/conservation_authorities.geojson
     initial_visibility: false
     status: available
-    active: false  # Disabled: No data file available yet
+    active: true
     lazy_load: true
 
     style:
@@ -184,10 +188,10 @@ layers:
     name: Williams Treaty Reserves
     category: boundaries
     type: polygon
-    data_url: /data/processed/communities/williams_treaty_reserves.geojson
+    data_url: /data/datasets/boundaries/williams_treaty_reserves.geojson
     initial_visibility: false
     status: available
-    active: false  # Disabled: No data file available yet
+    active: true  # Set to false to hide from UI while keeping configuration
     lazy_load: true
 
     style:
@@ -216,17 +220,137 @@ layers:
 
     info:
       description: The 10 Indian Reserves of the 7 Williams Treaty First Nations
-      title_default: First Nation Reserve
+
+  - id: provincial_parks
+    name: Provincial Parks
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/protected_areas/provincial_parks.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        # Color by park class
+        color:
+          type: categorical
+          field: PROVINCIAL_PARK_CLASS_ENG
+          values:
+            Wilderness: '#006d2c'           # Dark green - most protected
+            Natural Environment: '#31a354'  # Medium green
+            Waterway: '#74c476'             # Light green
+            Recreation: '#a1d99b'           # Pale green
+            Cultural Heritage: '#8c6bb1'    # Purple for cultural sites
+          default: '#66c2a4'                # Teal for others
+        opacity: 0.4
+      outline:
+        color: '#238b45'
+        width: 2
+        opacity: 0.8
+
+    popup:
+      title_field: PROTECTED_AREA_NAME_ENG
       fields:
-        - label: Reserve
-          fields: [RESERVE_NAME, reserve_name]
-          default: N/A
-        - label: Band
-          fields: [BAND_NAME, band_name]
-          default: N/A
-        - label: Area
-          field: AREA_SQKM
-          format: '{value:.2f} km²'
+        - label: Short Name
+          field: COMMON_SHORT_NAME
+        - label: Park Class
+          field: PROVINCIAL_PARK_CLASS_ENG
+        - label: IUCN Category
+          field: IUCN_CATEGORY
+        - label: Area (ha)
+          field: REGULATED_AREA
+          format: '{value:,.0f} ha'
+        - label: Established
+          field: PROTDATE
+        - label: Status
+          field: STATUS_ENG
+        - label: Management
+          field: MANAGEMENT_ENG
+        - label: Website
+          field: URL
+          type: link
+
+    legend:
+      type: items
+      title: Provincial Parks
+      items:
+        - color: rgba(0, 109, 44, 0.4)
+          border: 2px solid #238b45
+          label: Wilderness
+        - color: rgba(49, 163, 84, 0.4)
+          border: 2px solid #238b45
+          label: Natural Environment
+        - color: rgba(116, 196, 118, 0.4)
+          border: 2px solid #238b45
+          label: Waterway
+        - color: rgba(161, 217, 155, 0.4)
+          border: 2px solid #238b45
+          label: Recreation
+        - color: rgba(140, 107, 177, 0.4)
+          border: 2px solid #238b45
+          label: Cultural Heritage
+      description: Parks classified by primary purpose
+
+    info:
+      description: Ontario Provincial Parks classified by conservation and recreation purpose
+
+  - id: watersheds
+    name: Watersheds
+    category: boundaries
+    type: polygon
+    data_url: /data/datasets/environmental/watersheds.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#4292c6'
+        opacity: 0.15
+      outline:
+        color: '#08519c'
+        width: 1.5
+        opacity: 0.6
+
+    popup:
+      title_fields: [NAME1, NAME2]
+      title_default: Watershed
+      fields:
+        - label: Primary Watershed
+          field: NAME1
+        - label: Secondary Watershed
+          field: NAME2
+        - label: Tertiary Watershed
+          field: NAME3
+          optional: true
+        - label: Quaternary Watershed
+          field: NAME4
+          optional: true
+        - label: Area (hectares)
+          field: AREA_HA
+          format: '{value:,.2f} ha'
+        - label: Area (acres)
+          field: AREA_ACRE
+          format: '{value:,.2f} acres'
+        - label: Watershed Code
+          field: CODE6
+        - label: Data Source
+          field: SOURCE
+
+    legend:
+      type: items
+      title: Watersheds
+      items:
+        - color: rgba(66, 146, 198, 0.15)
+          border: 1.5px solid #08519c
+          label: Watershed boundary
+      description: Hierarchical watershed drainage areas
+
+    info:
+      description: Ontario watersheds showing hierarchical drainage basins from primary to quaternary levels
 
   # ============================================================================
   # ORGANIZATIONS
@@ -236,10 +360,10 @@ layers:
     name: Environmental Charities
     category: organizations
     type: point
-    data_url: /data/processed/charities/environmental_organizations.geojson
+    data_url: /data/datasets/organizations/environmental_organizations.geojson
     initial_visibility: false
     status: available
-    active: false  # Disabled: No data file available yet
+    active: true  # Now available in S3
 
     style:
       circle:
@@ -277,7 +401,7 @@ layers:
     name: Williams Treaty First Nations
     category: communities
     type: point
-    data_url: /data/processed/communities/williams_treaty_communities.geojson
+    data_url: /data/datasets/boundaries/williams_treaty_communities.geojson
     initial_visibility: false
     status: available
 
@@ -310,7 +434,12 @@ layers:
     data_url: /data/processed/infrastructure/infrastructure_projects.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -357,12 +486,13 @@ layers:
     data_url: /data/processed/water/water_advisories.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
 
     # Per-layer data source configuration (overrides global defaults)
-    # This layer uses local data only with source metadata
+    # This layer uses local data only (data not in S3 yet)
     data_source:
-      # Use global defaults (local mode), just add metadata
+      mode: local
       source_info:
         provider: "Ontario Ministry of the Environment, Conservation and Parks"
         dataset: "Drinking Water Advisories"
@@ -420,7 +550,7 @@ layers:
     name: Community Well-Being
     category: community_data
     type: polygon
-    data_url: /data/processed/cwb/community_wellbeing.geojson
+    data_url: /data/datasets/community/community_wellbeing_ontario.geojson
     initial_visibility: false
     status: available
     lazy_load: true
@@ -475,7 +605,12 @@ layers:
     data_url: /data/processed/csicp/csicp_funding.geojson
     initial_visibility: false
     status: available
+    active: false  # Deactivated - data not in S3 yet
     lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       circle:
@@ -512,8 +647,13 @@ layers:
     data_url: /data/processed/ndvi/ndvi_example_2024-06.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       opacity: 0.7
@@ -558,8 +698,13 @@ layers:
     data_url: /data/processed/dem/elevation.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     # Coordinate adjustment to fix alignment issues
     coordinate_adjustment:
@@ -610,6 +755,50 @@ layers:
       description: "Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)"
 
   # ============================================================================
+  # BIODIVERSITY
+  # ============================================================================
+
+  - id: ebird
+    name: eBird Observations
+    category: biodiversity
+    type: point
+    data_url: /data/processed/biodiversity/ebird_observations_recent.json
+    initial_visibility: false
+    status: available
+    active: false  # Deactivated - data not in S3 yet
+    lazy_load: true
+
+    # Override to use local-only mode (data not in S3 yet)
+    data_source:
+      mode: local
+
+    style:
+      circle:
+        radius: 5
+        color: '#e74c3c'
+        opacity: 0.7
+        stroke_width: 1
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: comName
+      title_default: Bird Observation
+      fields:
+        - label: Common Name
+          field: comName
+        - label: Scientific Name
+          field: sciName
+        - label: Count
+          field: howMany
+        - label: Date
+          field: obsDt
+        - label: Location
+          field: locName
+
+    info:
+      description: Recent eBird bird observations in the Williams Treaty area
+
+  # ============================================================================
   # FIRE DATA
   # ============================================================================
 
@@ -617,7 +806,7 @@ layers:
     name: Fire Perimeters
     category: fire
     type: polygon
-    data_url: /data/processed/fire/fire_perimeters_1976_2024.geojson
+    data_url: /data/datasets/environmental/fire_perimeters_1976_2024.geojson
     initial_visibility: false
     status: available
     lazy_load: true
@@ -688,8 +877,13 @@ layers:
     data_url: /data/processed/fuel/fuel_types_web.tif
     initial_visibility: false
     status: available
+    active: false  # Deactivated - raster data not in S3 yet
     lazy_load: true
     requires_library: georaster
+
+    # Override to use local-only mode (raster data not in S3 yet)
+    data_source:
+      mode: local
 
     style:
       opacity: 0.6

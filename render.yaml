@@ -7,11 +7,15 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python web/server.py --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATA_SOURCE_URL
-        value: https://robertsoden.io/ontario-environmental-data
       - key: DATA_MODE
         value: remote
+      - key: DATA_SOURCE_URL
+        value: https://ontario-environmental-data.s3.us-east-1.amazonaws.com
       - key: MAPBOX_TOKEN
         sync: false  # Set this in Render dashboard (not committed to repo)
       - key: PYTHON_VERSION
         value: 3.11.0
+      # Optional: Enable password protection
+      # Uncomment and set in Render dashboard to require a password:
+      # - key: BASIC_AUTH_PASSWORD
+      #   sync: false  # Set manually in dashboard (username will be ignored)
