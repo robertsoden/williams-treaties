@@ -429,18 +429,14 @@ layers:
       description: 7 First Nations communities (~9,000 people)
 
   - id: infrastructure
-    name: Infrastructure Projects
+    name: Indigenous Infrastructure Projects
     category: community_data
     type: point
-    data_url: /data/processed/infrastructure/infrastructure_projects.geojson
+    data_url: /data/datasets/community/infrastructure_projects.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
 
     style:
       circle:
@@ -478,30 +474,66 @@ layers:
           hide_if: Not Available
 
     info:
-      description: 445 federal infrastructure projects
+      description: 822 Indigenous infrastructure projects from ISC ICIM database
+
+  - id: federal_infrastructure
+    name: Federal Infrastructure Projects
+    category: community_data
+    type: point
+    data_url: /data/datasets/community/federal_infrastructure.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        opacity: 0.8
+        stroke_width: 1
+        stroke_color: '#ffffff'
+        color:
+          type: categorical
+          field: category
+          values:
+            Housing: '#e41a1c'
+            'Public Transit': '#377eb8'
+            'Green Infrastructure': '#4daf4a'
+            'Roads, Bridges and Trade Infrastructure': '#ff7f00'
+            'Community, Culture and Recreation': '#984ea3'
+          default: '#999999'
+
+    popup:
+      title_field: project_name
+      title_default: Federal Project
+      fields:
+        - label: Department
+          field: department
+        - label: Program
+          field: program
+        - label: Category
+          field: category
+        - label: Municipality
+          field: municipality
+        - label: Federal Contribution
+          field: federal_contribution
+        - label: Status
+          field: status
+        - label: Indigenous Recipient
+          field: indigenous_recipient
+
+    info:
+      description: 1,465 federal infrastructure projects in Williams Treaty area
 
   - id: water_advisories
     name: Water Advisories
     category: community_data
     type: point
-    data_url: /data/processed/water/water_advisories.geojson
+    data_url: /data/datasets/community/water_advisories.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
-
-    # Per-layer data source configuration (overrides global defaults)
-    # This layer uses local data only (data not in S3 yet)
-    data_source:
-      mode: local
-      source_info:
-        provider: "Ontario Ministry of the Environment, Conservation and Parks"
-        dataset: "Drinking Water Advisories"
-        date: "2025-11-13"
-        license: "Open Government License - Ontario"
-        license_url: "https://www.ontario.ca/page/open-government-licence-ontario"
-        update_frequency: "Weekly"
-        methodology: "Compiled from public drinking water advisory reports"
 
     style:
       circle:
@@ -545,7 +577,7 @@ layers:
           optional: true
 
     info:
-      description: Drinking water advisories (1 active)
+      description: 15 drinking water advisories in Williams Treaty area (1 active, 14 lifted)
 
   - id: cwb
     name: Community Well-Being
