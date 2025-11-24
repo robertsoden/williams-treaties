@@ -764,15 +764,11 @@ layers:
     name: eBird Observations
     category: biodiversity
     type: point
-    data_url: /data/processed/biodiversity/ebird_observations_recent.json
+    data_url: /data/datasets/biodiversity/ebird_observations.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
 
     style:
       circle:
