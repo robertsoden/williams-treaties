@@ -856,14 +856,8 @@ layers:
   - id: hillshade
     name: Terrain Hillshade
     category: topography
-    type: arcgis-imageserver
-    data_url: https://ws.geoservices.lrc.gov.on.ca/arcgis5/rest/services/Elevation/Ontario_DEM_ImageryDerived/ImageServer
-    rendering_rule:
-      rasterFunction: Hillshade
-      rasterFunctionArguments:
-        Azimuth: 315
-        Altitude: 45
-        ZFactor: 1
+    type: arcgis-tile
+    data_url: https://tiles.arcgis.com/tiles/B6yKvIZqzuOr0jBR/arcgis/rest/services/Canada_Hillshade/MapServer
     initial_visibility: false
     status: available
     active: true
@@ -874,7 +868,7 @@ layers:
       before_layer: treaty-fill
 
     info:
-      description: "Terrain hillshade derived from Ontario Digital Elevation Model (2m resolution). Shows topographic relief with shading. Source: Land Information Ontario."
+      description: "Terrain hillshade showing topographic relief with shading. Covers all of Canada including Ontario. Source: ArcGIS Online / Esri Canada."
 
   - id: contours
     name: Contour Lines

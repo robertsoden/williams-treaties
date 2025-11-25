@@ -440,7 +440,10 @@ def layer_status():
         error_msg = None
 
         if data_url:
-            if DATA_MODE == 'remote' and DATA_REMOTE_URL:
+            # Mapbox tilesets are always considered available
+            if data_url.startswith('mapbox://'):
+                data_exists = True
+            elif DATA_MODE == 'remote' and DATA_REMOTE_URL:
                 # Check remote URL
                 try:
                     # Remove /data/ prefix and construct full URL

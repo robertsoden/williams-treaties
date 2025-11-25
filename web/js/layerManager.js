@@ -298,6 +298,8 @@ class LayerManager {
                 return await this.loadMapboxRasterLayer(layer);
             } else if (layer.type === 'arcgis-imageserver') {
                 return await this.loadArcGISImageServerLayer(layer);
+            } else if (layer.type === 'arcgis-tile') {
+                return await this.loadArcGISTileLayer(layer);
             }
         } catch (error) {
             // Enhanced error logging with full context
@@ -612,6 +614,53 @@ class LayerManager {
 
         this.loadedLayers.add(layer.id);
         console.log(`✓ ${layer.name} loaded from ArcGIS ImageServer`);
+        return true;
+    }
+
+    /**
+     * Load an ArcGIS tile layer (pre-cached MapServer/ImageServer tiles)
+     */
+    async loadArcGISTileLayer(layer) {
+        console.log(`Loading ArcGIS tile layer: ${layer.name}`);
+
+        // Build the tile URL
+        let tileUrl = layer.data_url;
+
+        // Ensure URL ends without trailing slash for consistency
+        tileUrl = tileUrl.replace(/\/$/, '');
+
+        // Add source for ArcGIS cached tiles
+        // Standard ArcGIS tile pattern: /tile/{z}/{y}/{x}
+        const sourceConfig = {
+            type: 'raster',
+            tiles: [
+                `${tileUrl}/tile/{z}/{y}/{x}`
+            ],
+            tileSize: 256,
+            scheme: 'xyz'
+        };
+
+        this.map.addSource(layer.id, sourceConfig);
+
+        // Add raster layer
+        const beforeLayer = layer.style?.before_layer || undefined;
+
+        this.map.addLayer({
+            id: `${layer.id}-layer`,
+            type: 'raster',
+            source: layer.id,
+            paint: {
+                'raster-opacity': layer.style?.opacity || 0.7
+            }
+        }, beforeLayer);
+
+        // Initially hide if not visible
+        if (!layer.initial_visibility) {
+            this.map.setLayoutProperty(`${layer.id}-layer`, 'visibility', 'none');
+        }
+
+        this.loadedLayers.add(layer.id);
+        console.log(`✓ ${layer.name} loaded from ArcGIS tile service`);
         return true;
     }
 
@@ -955,7 +1004,7 @@ class LayerManager {
                     this.map.setLayoutProperty(`${layerId}-line`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
                 }
-            } else if (layer.type === 'raster' || layer.type === 'mapbox-raster' || layer.type === 'arcgis-imageserver') {
+            } else if (layer.type === 'raster' || layer.type === 'mapbox-raster' || layer.type === 'arcgis-imageserver' || layer.type === 'arcgis-tile') {
                 if (this.map.getLayer(`${layerId}-layer`)) {
                     this.map.setLayoutProperty(`${layerId}-layer`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
