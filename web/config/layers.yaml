@@ -864,7 +864,7 @@ layers:
     lazy_load: true
 
     style:
-      opacity: 0.5
+      opacity: 0.8
       before_layer: treaty-fill
 
     info:
