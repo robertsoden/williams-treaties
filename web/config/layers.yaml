@@ -41,6 +41,10 @@ categories:
     name: Biodiversity
     order: 8
 
+  - id: satellite
+    name: Satellite Data
+    order: 9
+
 # Layer definitions
 layers:
   # ============================================================================
@@ -641,19 +645,15 @@ layers:
   # ============================================================================
 
   - id: ndvi
-    name: NDVI (Vegetation Index)
-    category: vegetation
+    name: NDVI 2024 (Vegetation Index)
+    category: satellite
     type: raster
-    data_url: /data/processed/ndvi/ndvi_example_2024-06.tif
+    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/ndvi/ontario_ndvi_2024_250m.tif
     initial_visibility: false
     status: available
-    active: false  # Deactivated - raster data not in S3 yet
+    active: true
     lazy_load: true
     requires_library: georaster
-
-    # Override to use local-only mode (raster data not in S3 yet)
-    data_source:
-      mode: local
 
     style:
       opacity: 0.7
@@ -685,7 +685,88 @@ layers:
       description: Vegetation health indicator
 
     info:
-      description: June 2024 composite - Check console if not working
+      description: Annual 2024 MODIS 250m resolution vegetation health index from S3 (COG format)
+
+  - id: landcover
+    name: Land Cover 2020
+    category: satellite
+    type: raster
+    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/landcover/ontario_landcover_2020.tif
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+    requires_library: georaster
+
+    style:
+      opacity: 0.7
+      color_scale:
+        type: categorical
+        values:
+          1:  [0, 61, 0, 180]        # Temperate/sub-polar needleleaf forest
+          2:  [148, 156, 112, 180]   # Sub-polar taiga needleleaf forest
+          5:  [0, 100, 0, 180]       # Temperate/sub-polar broadleaf deciduous
+          6:  [44, 100, 44, 180]     # Mixed forest
+          8:  [137, 90, 68, 180]     # Temperate/sub-polar shrubland
+          10: [187, 175, 102, 180]   # Temperate/sub-polar grassland
+          11: [223, 223, 194, 180]   # Sub-polar/polar shrubland-lichen-moss
+          12: [196, 214, 170, 180]   # Sub-polar/polar grassland-lichen-moss
+          13: [252, 192, 134, 180]   # Sub-polar/polar barren-lichen-moss
+          14: [188, 188, 188, 180]   # Wetland
+          15: [0, 0, 88, 180]        # Cropland
+          16: [120, 130, 181, 180]   # Barren land
+          17: [255, 0, 0, 180]       # Urban/developed
+          18: [166, 219, 255, 180]   # Water
+          19: [255, 255, 255, 200]   # Snow/ice
+      before_layer: treaty-fill
+
+    legend:
+      type: categorical
+      title: Land Cover Classes
+      categories:
+        - value: 1
+          label: Needleleaf Forest
+          color: '#003d00'
+        - value: 2
+          label: Taiga Forest
+          color: '#949c70'
+        - value: 5
+          label: Deciduous Forest
+          color: '#006400'
+        - value: 6
+          label: Mixed Forest
+          color: '#2c642c'
+        - value: 8
+          label: Shrubland
+          color: '#895a44'
+        - value: 10
+          label: Grassland
+          color: '#bbaf66'
+        - value: 14
+          label: Wetland
+          color: '#bcbcbc'
+        - value: 15
+          label: Cropland
+          color: '#000058'
+        - value: 16
+          label: Barren
+          color: '#7882b5'
+        - value: 17
+          label: Urban
+          color: '#ff0000'
+        - value: 18
+          label: Water
+          color: '#a6dbff'
+        - value: 19
+          label: Snow/Ice
+          color: '#ffffff'
+      description: 2020 land cover classification
+
+    info:
+      description: |
+        North American Land Change Monitoring System (NALCMS) 2020 land cover
+        classification for Ontario at 30m resolution, served from S3 (COG format).
+        Data source: Natural Resources Canada
 
   # ============================================================================
   # TOPOGRAPHY
