@@ -158,7 +158,7 @@ layers:
     name: Conservation Authorities
     category: boundaries
     type: polygon
-    data_url: /data/datasets/protected_areas/conservation_authorities.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/conservation_authorities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -229,7 +229,7 @@ layers:
     name: Provincial Parks
     category: boundaries
     type: polygon
-    data_url: /data/datasets/protected_areas/provincial_parks.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/provincial_parks.geojson
     initial_visibility: false
     status: available
     active: true
@@ -435,15 +435,11 @@ layers:
     name: Infrastructure Projects
     category: community_data
     type: point
-    data_url: /data/processed/infrastructure/infrastructure_projects.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/infrastructure_projects.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
 
     style:
       circle:
@@ -481,30 +477,27 @@ layers:
           hide_if: Not Available
 
     info:
-      description: 445 federal infrastructure projects
+      description: 445 federal infrastructure projects in Williams Treaty territory
 
   - id: water_advisories
     name: Water Advisories
     category: community_data
     type: point
-    data_url: /data/processed/water/water_advisories.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/water_advisories.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
 
-    # Per-layer data source configuration (overrides global defaults)
-    # This layer uses local data only (data not in S3 yet)
+    # Per-layer data source configuration
     data_source:
-      mode: local
       source_info:
-        provider: "Ontario Ministry of the Environment, Conservation and Parks"
+        provider: "Indigenous Services Canada"
         dataset: "Drinking Water Advisories"
-        date: "2025-11-13"
-        license: "Open Government License - Ontario"
-        license_url: "https://www.ontario.ca/page/open-government-licence-ontario"
+        date: "2025-11-24"
+        license: "Open Government License - Canada"
+        license_url: "https://open.canada.ca/en/open-government-licence-canada"
         update_frequency: "Weekly"
-        methodology: "Compiled from public drinking water advisory reports"
 
     style:
       circle:
@@ -539,22 +532,18 @@ layers:
         - label: Date Lifted
           field: date_lifted
           optional: true
-        - label: Duration
-          field: duration_days
-          format: '{value} days'
-          optional: true
         - label: Corrective Measure
           field: corrective_measure
           optional: true
 
     info:
-      description: Drinking water advisories (1 active)
+      description: 3 water advisories in Williams Treaty territory (1 active)
 
   - id: cwb
     name: Community Well-Being
     category: community_data
     type: polygon
-    data_url: /data/datasets/community/community_wellbeing_ontario.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/community_wellbeing.geojson
     initial_visibility: false
     status: available
     lazy_load: true
@@ -580,7 +569,7 @@ layers:
       before_layer: treaty-fill
 
     popup:
-      title_field: name
+      title_field: csd_name
       fields:
         - label: Community Well-Being Score
           field: cwb_score
@@ -595,12 +584,12 @@ layers:
         - label: Housing
           field: housing_score
           optional: true
-        - label: Labour
-          field: labour_score
+        - label: Labour Force
+          field: labour_force_score
           optional: true
 
     info:
-      description: 122 communities in treaty area (2021 data)
+      description: 122 communities in Williams Treaty territory (2021 data)
 
   - id: csicp
     name: Cultural Infrastructure Funding
@@ -1049,22 +1038,18 @@ layers:
     name: Fire Perimeters
     category: fire
     type: polygon
-    data_url: /data/datasets/environmental/fire_perimeters_1976_2024.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/fire_perimeters.geojson
     initial_visibility: false
     status: available
     lazy_load: true
 
     # Per-layer data source configuration
-    # Example: This layer could prefer remote data for live updates
     data_source:
-      # Override global fallback to try remote first (commented out for now)
-      # fallback_priority: ["remote", "local"]
-
       # Source metadata
       source_info:
         provider: "Canadian Wildland Fire Information System (CWFIS)"
         dataset: "National Fire Database - Historical Fire Perimeters"
-        date_range: "1976-2024"
+        date_range: "1977-2024"
         license: "Open Government License - Canada"
         license_url: "https://open.canada.ca/en/open-government-licence-canada"
         update_frequency: "Annual"
@@ -1102,16 +1087,11 @@ layers:
       items:
         - color: rgba(215, 48, 39, 0.4)
           border: 1px solid #a50026
-          label: Historical fire boundaries (2010-2024)
+          label: Historical fire boundaries (1977-2024)
       description: Click on fire perimeters for details
 
     info:
-      description: Historical fire perimeters (2010-2024)
-
-    # Special behavior
-    zoom_on_show:
-      bounds: [[-78.7073861, 45.805734], [-76.91731653, 46.38118623]]
-      padding: 50
+      description: 29 historical fire perimeters in Williams Treaty territory (1977-2024)
 
   - id: fuel_type
     name: Wildland Fuel Classification
