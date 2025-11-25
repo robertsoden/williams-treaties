@@ -1,10 +1,14 @@
 // Williams Treaty Territories - Map Application (Config-Driven)
 
 // Configuration - First check local config.js, then will check API
+// Williams Treaty territory bounds (Georgian Bay to Ottawa River)
+const WILLIAMS_TREATY_BOUNDS = [[-80.3, 43.8], [-77.0, 46.0]];
+const WILLIAMS_TREATY_CENTER = [-78.65, 44.9];
+
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
-    CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || [-79.05, 44.3],
-    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 9,
+    CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || WILLIAMS_TREATY_CENTER,
+    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 7,
     BASEMAPS: {
         streets: 'mapbox://styles/mapbox/streets-v12',
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
@@ -98,6 +102,12 @@ async function initializeMap() {
     // Continue with layer initialization when map is ready
     map.on('load', async () => {
         console.log('✓ Map loaded and ready');
+
+        // Fit to Williams Treaty territory bounds
+        map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
+            padding: 20,
+            duration: 0  // No animation on initial load
+        });
 
         // Check library availability
         if (typeof parseGeoraster !== 'undefined') {
