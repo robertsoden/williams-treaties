@@ -121,10 +121,10 @@ layers:
       description: All 203 Indian Reserves in Ontario from Natural Resources Canada
 
   - id: municipalities
-    name: Ontario Municipalities
+    name: Municipalities
     category: boundaries
     type: polygon
-    data_url: /data/datasets/boundaries/ontario_municipalities.geojson
+    data_url: /data/datasets/williams_treaty/municipalities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -152,13 +152,13 @@ layers:
           field: PRNAME
 
     info:
-      description: All 577 Census Subdivisions (municipalities) in Ontario from Statistics Canada 2021 Census
+      description: Municipalities in Williams Treaty territory from Statistics Canada 2021 Census
 
   - id: conservation_authorities
     name: Conservation Authorities
     category: boundaries
     type: polygon
-    data_url: /data/datasets/protected_areas/conservation_authorities.geojson
+    data_url: /data/datasets/williams_treaty/conservation_authorities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -186,7 +186,7 @@ layers:
           field: F_TYPE
 
     info:
-      description: Ontario's 36 Conservation Authorities from Land Information Ontario. Conservation authorities are local watershed management agencies that deliver services and programs to protect and manage natural resources.
+      description: Conservation Authorities in Williams Treaty territory - watershed management agencies that deliver programs to protect and manage natural resources.
 
   - id: reserves
     name: Williams Treaty Reserves
@@ -229,7 +229,7 @@ layers:
     name: Provincial Parks
     category: boundaries
     type: polygon
-    data_url: /data/datasets/protected_areas/provincial_parks.geojson
+    data_url: /data/datasets/williams_treaty/provincial_parks.geojson
     initial_visibility: false
     status: available
     active: true
@@ -298,7 +298,7 @@ layers:
       description: Parks classified by primary purpose
 
     info:
-      description: Ontario Provincial Parks classified by conservation and recreation purpose
+      description: Provincial Parks in Williams Treaty territory classified by conservation and recreation purpose
 
   - id: watersheds
     name: Watersheds
@@ -436,7 +436,7 @@ layers:
     name: Indigenous Infrastructure Projects
     category: community_data
     type: point
-    data_url: /data/datasets/community/infrastructure_projects.geojson
+    data_url: /data/datasets/williams_treaty/infrastructure_projects.geojson
     initial_visibility: false
     status: available
     active: true
@@ -478,7 +478,7 @@ layers:
           hide_if: Not Available
 
     info:
-      description: 822 Indigenous infrastructure projects from ISC ICIM database
+      description: Indigenous infrastructure projects in Williams Treaty territory from ISC ICIM database
 
   - id: federal_infrastructure
     name: Federal Infrastructure Projects
@@ -533,7 +533,7 @@ layers:
     name: Water Advisories
     category: community_data
     type: point
-    data_url: /data/datasets/community/water_advisories.geojson
+    data_url: /data/datasets/williams_treaty/water_advisories.geojson
     initial_visibility: false
     status: available
     active: true
@@ -587,7 +587,7 @@ layers:
     name: Community Well-Being
     category: community_data
     type: polygon
-    data_url: /data/datasets/community/community_wellbeing_ontario.geojson
+    data_url: /data/datasets/williams_treaty/community_wellbeing.geojson
     initial_visibility: false
     status: available
     active: true
@@ -634,7 +634,7 @@ layers:
           optional: true
 
     info:
-      description: 122 communities in treaty area (2021 data)
+      description: Community Well-Being Index for communities in Williams Treaty territory (2021 data)
 
   - id: csicp
     name: Cultural Infrastructure Funding
@@ -917,7 +917,7 @@ layers:
     name: Fire Perimeters
     category: fire
     type: polygon
-    data_url: /data/datasets/environmental/fire_perimeters_1976_2024.geojson
+    data_url: /data/datasets/williams_treaty/fire_perimeters.geojson
     initial_visibility: false
     status: available
     active: true
@@ -975,7 +975,7 @@ layers:
       description: Click on fire perimeters for details
 
     info:
-      description: Historical fire perimeters (2010-2024)
+      description: Historical fire perimeters in Williams Treaty territory (1976-2024)
 
     # Special behavior
     zoom_on_show:
@@ -1042,7 +1042,7 @@ layers:
     name: Wetlands
     category: boundaries
     type: polygon
-    data_url: /data/datasets/environmental/wetlands.geojson
+    data_url: /data/datasets/williams_treaty/wetlands.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1072,13 +1072,13 @@ layers:
           field: EVALUATED_WETLAND_IND
 
     info:
-      description: Provincial wetlands with ecological significance ratings from Ontario GeoHub
+      description: Wetlands in Williams Treaty territory with ecological significance ratings
 
   - id: watercourses
     name: Rivers & Streams
     category: boundaries
     type: polygon
-    data_url: /data/datasets/environmental/watercourses.geojson
+    data_url: /data/datasets/williams_treaty/watercourses.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1103,13 +1103,13 @@ layers:
           field: WATERCOURSE_TYPE
 
     info:
-      description: Ontario Hydro Network - rivers and streams (1:10M scale)
+      description: Rivers and streams in Williams Treaty territory from Ontario Hydro Network
 
   - id: waterbodies
     name: Lakes & Ponds
     category: boundaries
     type: polygon
-    data_url: /data/datasets/environmental/waterbodies.geojson
+    data_url: /data/datasets/williams_treaty/waterbodies.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1134,7 +1134,7 @@ layers:
           field: WATERBODY_TYPE
 
     info:
-      description: Ontario Hydro Network - lakes and ponds (1:10M scale)
+      description: Lakes and ponds in Williams Treaty territory from Ontario Hydro Network
 
   - id: watersheds_tertiary
     name: Watersheds (Tertiary)
@@ -1240,7 +1240,7 @@ layers:
     name: Dams
     category: boundaries
     type: point
-    data_url: /data/datasets/environmental/dams.geojson
+    data_url: /data/datasets/williams_treaty/dams.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1273,7 +1273,7 @@ layers:
           optional: true
 
     info:
-      description: Ontario Dam Inventory - 876 dams in the Williams Treaty area
+      description: Dams in Williams Treaty territory from Ontario Dam Inventory
 
   # ============================================================================
   # ECOLOGY / PROTECTED AREAS
@@ -1351,7 +1351,7 @@ layers:
     name: Ecodistricts
     category: boundaries
     type: polygon
-    data_url: /data/datasets/environmental/ecodistricts.geojson
+    data_url: /data/datasets/williams_treaty/ecodistricts.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1379,7 +1379,7 @@ layers:
           optional: true
 
     info:
-      description: Ontario Ecodistricts - ecological classification units for biodiversity planning
+      description: Ecodistricts in Williams Treaty territory - ecological classification units for biodiversity planning
 
   - id: ecoregions
     name: Ecoregions
@@ -1423,7 +1423,7 @@ layers:
     name: Recreational Trails
     category: boundaries
     type: polygon
-    data_url: /data/datasets/infrastructure/trails.geojson
+    data_url: /data/datasets/williams_treaty/trails.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1458,13 +1458,13 @@ layers:
           optional: true
 
     info:
-      description: Ontario Recreational Trail Network - 1,901 trail segments
+      description: Recreational trails in Williams Treaty territory
 
   - id: trail_access
     name: Trail Access Points
     category: boundaries
     type: point
-    data_url: /data/datasets/infrastructure/trail_access_points.geojson
+    data_url: /data/datasets/williams_treaty/trail_access_points.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1492,7 +1492,7 @@ layers:
           optional: true
 
     info:
-      description: Ontario Trail Network access points and trailheads - 329 locations
+      description: Trail access points and trailheads in Williams Treaty territory
 
   # ============================================================================
   # TERRAIN
