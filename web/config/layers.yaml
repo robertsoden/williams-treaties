@@ -634,26 +634,15 @@ layers:
   - id: ndvi
     name: NDVI 2024 (Vegetation Index)
     category: satellite
-    type: raster
-    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/ndvi/ontario_ndvi_2024_250m.tif
+    type: mapbox-raster
+    data_url: mapbox://robertsoden.ndvi_2024
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
-    requires_library: georaster
 
     style:
       opacity: 0.7
-      color_scale:
-        type: continuous
-        steps:
-          - [0.2, [211, 48, 39, 180]]      # Red - very low
-          - [0.3, [252, 141, 89, 180]]     # Orange-red - low
-          - [0.4, [254, 224, 139, 180]]    # Yellow - moderate-low
-          - [0.5, [217, 239, 139, 180]]    # Yellow-green - moderate
-          - [0.6, [145, 207, 96, 180]]     # Light green - moderate-high
-          - [0.7, [26, 152, 80, 180]]      # Green - high
-          - [0.8, [0, 104, 55, 200]]       # Dark green - very high
       before_layer: treaty-fill
 
     legend:
@@ -672,39 +661,20 @@ layers:
       description: Vegetation health indicator
 
     info:
-      description: Annual 2024 MODIS 250m resolution vegetation health index from S3 (COG format)
+      description: Annual 2024 MODIS 250m resolution vegetation health index served via Mapbox Tilesets (zoom 5-10)
 
   - id: landcover
     name: Land Cover 2020
     category: satellite
-    type: raster
-    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/landcover/ontario_landcover_2020.tif
+    type: mapbox-raster
+    data_url: mapbox://robertsoden.landcover_2020
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
-    requires_library: georaster
 
     style:
       opacity: 0.7
-      color_scale:
-        type: categorical
-        values:
-          1:  [0, 61, 0, 180]        # Temperate/sub-polar needleleaf forest
-          2:  [148, 156, 112, 180]   # Sub-polar taiga needleleaf forest
-          5:  [0, 100, 0, 180]       # Temperate/sub-polar broadleaf deciduous
-          6:  [44, 100, 44, 180]     # Mixed forest
-          8:  [137, 90, 68, 180]     # Temperate/sub-polar shrubland
-          10: [187, 175, 102, 180]   # Temperate/sub-polar grassland
-          11: [223, 223, 194, 180]   # Sub-polar/polar shrubland-lichen-moss
-          12: [196, 214, 170, 180]   # Sub-polar/polar grassland-lichen-moss
-          13: [252, 192, 134, 180]   # Sub-polar/polar barren-lichen-moss
-          14: [188, 188, 188, 180]   # Wetland
-          15: [0, 0, 88, 180]        # Cropland
-          16: [120, 130, 181, 180]   # Barren land
-          17: [255, 0, 0, 180]       # Urban/developed
-          18: [166, 219, 255, 180]   # Water
-          19: [255, 255, 255, 200]   # Snow/ice
       before_layer: treaty-fill
 
     legend:
@@ -752,40 +722,21 @@ layers:
     info:
       description: |
         North American Land Change Monitoring System (NALCMS) 2020 land cover
-        classification for Ontario at 30m resolution, served from S3 (COG format).
+        classification for Ontario at 30m resolution, served via Mapbox Tilesets (zoom 5-11).
         Data source: Natural Resources Canada
 
   - id: landcover_2015
     name: Land Cover 2015
     category: satellite
-    type: raster
-    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/landcover/ontario_landcover_2015.tif
+    type: mapbox-raster
+    data_url: mapbox://robertsoden.landcover_2015
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
-    requires_library: georaster
 
     style:
       opacity: 0.7
-      color_scale:
-        type: categorical
-        values:
-          1:  [0, 61, 0, 180]        # Temperate/sub-polar needleleaf forest
-          2:  [148, 156, 112, 180]   # Sub-polar taiga needleleaf forest
-          5:  [0, 100, 0, 180]       # Temperate/sub-polar broadleaf deciduous
-          6:  [44, 100, 44, 180]     # Mixed forest
-          8:  [137, 90, 68, 180]     # Temperate/sub-polar shrubland
-          10: [187, 175, 102, 180]   # Temperate/sub-polar grassland
-          11: [223, 223, 194, 180]   # Sub-polar/polar shrubland-lichen-moss
-          12: [196, 214, 170, 180]   # Sub-polar/polar grassland-lichen-moss
-          13: [252, 192, 134, 180]   # Sub-polar/polar barren-lichen-moss
-          14: [188, 188, 188, 180]   # Wetland
-          15: [0, 0, 88, 180]        # Cropland
-          16: [120, 130, 181, 180]   # Barren land
-          17: [255, 0, 0, 180]       # Urban/developed
-          18: [166, 219, 255, 180]   # Water
-          19: [255, 255, 255, 200]   # Snow/ice
       before_layer: treaty-fill
 
     legend:
@@ -833,40 +784,21 @@ layers:
     info:
       description: |
         North American Land Change Monitoring System (NALCMS) 2015 land cover
-        classification for Ontario at 30m resolution, served from S3 (COG format).
+        classification for Ontario at 30m resolution, served via Mapbox Tilesets (zoom 5-11).
         Data source: Natural Resources Canada
 
   - id: landcover_2010
     name: Land Cover 2010
     category: satellite
-    type: raster
-    data_url: https://ontario-environmental-data.s3.amazonaws.com/datasets/satellite/landcover/ontario_landcover_2010.tif
+    type: mapbox-raster
+    data_url: mapbox://robertsoden.landcover_2010
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
-    requires_library: georaster
 
     style:
       opacity: 0.7
-      color_scale:
-        type: categorical
-        values:
-          1:  [0, 61, 0, 180]        # Temperate/sub-polar needleleaf forest
-          2:  [148, 156, 112, 180]   # Sub-polar taiga needleleaf forest
-          5:  [0, 100, 0, 180]       # Temperate/sub-polar broadleaf deciduous
-          6:  [44, 100, 44, 180]     # Mixed forest
-          8:  [137, 90, 68, 180]     # Temperate/sub-polar shrubland
-          10: [187, 175, 102, 180]   # Temperate/sub-polar grassland
-          11: [223, 223, 194, 180]   # Sub-polar/polar shrubland-lichen-moss
-          12: [196, 214, 170, 180]   # Sub-polar/polar grassland-lichen-moss
-          13: [252, 192, 134, 180]   # Sub-polar/polar barren-lichen-moss
-          14: [188, 188, 188, 180]   # Wetland
-          15: [0, 0, 88, 180]        # Cropland
-          16: [120, 130, 181, 180]   # Barren land
-          17: [255, 0, 0, 180]       # Urban/developed
-          18: [166, 219, 255, 180]   # Water
-          19: [255, 255, 255, 200]   # Snow/ice
       before_layer: treaty-fill
 
     legend:
@@ -914,7 +846,7 @@ layers:
     info:
       description: |
         North American Land Change Monitoring System (NALCMS) 2010 land cover
-        classification for Ontario at 30m resolution, served from S3 (COG format).
+        classification for Ontario at 30m resolution, served via Mapbox Tilesets (zoom 5-11).
         Data source: Natural Resources Canada
 
   # ============================================================================

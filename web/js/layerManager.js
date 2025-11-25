@@ -294,6 +294,8 @@ class LayerManager {
                 return await this.loadVectorLayer(layer);
             } else if (layer.type === 'raster') {
                 return await this.loadRasterLayer(layer);
+            } else if (layer.type === 'mapbox-raster') {
+                return await this.loadMapboxRasterLayer(layer);
             }
         } catch (error) {
             // Enhanced error logging with full context
@@ -488,6 +490,40 @@ class LayerManager {
         this.loadedLayers.add(layer.id);
         hideLoading();
         console.log(`✓ ${layer.name} loaded successfully`);
+        return true;
+    }
+
+    /**
+     * Load a Mapbox raster tileset layer
+     */
+    async loadMapboxRasterLayer(layer) {
+        console.log(`Loading Mapbox raster tileset: ${layer.name}`);
+
+        // Add source from Mapbox tileset
+        this.map.addSource(layer.id, {
+            type: 'raster',
+            url: layer.data_url
+        });
+
+        // Add raster layer
+        const beforeLayer = layer.style?.before_layer || undefined;
+
+        this.map.addLayer({
+            id: `${layer.id}-layer`,
+            type: 'raster',
+            source: layer.id,
+            paint: {
+                'raster-opacity': layer.style?.opacity || 0.7
+            }
+        }, beforeLayer);
+
+        // Initially hide if not visible
+        if (!layer.initial_visibility) {
+            this.map.setLayoutProperty(`${layer.id}-layer`, 'visibility', 'none');
+        }
+
+        this.loadedLayers.add(layer.id);
+        console.log(`✓ ${layer.name} loaded from Mapbox tileset`);
         return true;
     }
 
@@ -826,7 +862,7 @@ class LayerManager {
                     this.map.setLayoutProperty(`${layerId}-outline`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
                 }
-            } else if (layer.type === 'raster') {
+            } else if (layer.type === 'raster' || layer.type === 'mapbox-raster') {
                 if (this.map.getLayer(`${layerId}-layer`)) {
                     this.map.setLayoutProperty(`${layerId}-layer`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
