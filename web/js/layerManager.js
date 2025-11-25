@@ -529,10 +529,19 @@ class LayerManager {
     async loadMapboxRasterLayer(layer) {
         console.log(`Loading Mapbox raster tileset: ${layer.name}`);
 
-        // Add source from Mapbox tileset
+        // Extract tileset ID from mapbox:// URL (e.g., "mapbox://robertsoden.ndvi_2024" -> "robertsoden.ndvi_2024")
+        const tilesetId = layer.data_url.replace('mapbox://', '');
+
+        // Get the access token from mapboxgl
+        const accessToken = mapboxgl.accessToken;
+
+        // Add source using raster tiles URL pattern for Mapbox tilesets
         this.map.addSource(layer.id, {
             type: 'raster',
-            url: layer.data_url
+            tiles: [
+                `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.png?access_token=${accessToken}`
+            ],
+            tileSize: 256
         });
 
         // Add raster layer
