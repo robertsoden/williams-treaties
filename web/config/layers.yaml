@@ -55,7 +55,7 @@ layers:
     name: Williams Treaty Territories
     category: boundaries
     type: polygon
-    data_url: /data/datasets/boundaries/williams_treaty.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/boundaries/williams_treaty.geojson
     initial_visibility: true
     status: available
     active: true
@@ -87,7 +87,7 @@ layers:
     name: Ontario First Nations Reserves
     category: boundaries
     type: polygon
-    data_url: /data/datasets/boundaries/ontario_reserves.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/boundaries/ontario_reserves.geojson
     initial_visibility: false
     status: available
     active: true
@@ -124,7 +124,7 @@ layers:
     name: Ontario Municipalities
     category: boundaries
     type: polygon
-    data_url: /data/datasets/boundaries/ontario_municipalities.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/boundaries/ontario_municipalities.geojson
     initial_visibility: false
     status: available
     active: true
@@ -192,7 +192,7 @@ layers:
     name: Williams Treaty Reserves
     category: boundaries
     type: polygon
-    data_url: /data/datasets/boundaries/williams_treaty_reserves.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/boundaries/williams_treaty_reserves.geojson
     initial_visibility: false
     status: available
     active: true  # Set to false to hide from UI while keeping configuration
@@ -340,7 +340,7 @@ layers:
     name: Watersheds
     category: boundaries
     type: polygon
-    data_url: /data/datasets/environmental/watersheds.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/watersheds.geojson
     initial_visibility: false
     status: available
     active: true
@@ -400,7 +400,7 @@ layers:
     name: Environmental Charities
     category: organizations
     type: point
-    data_url: /data/datasets/organizations/environmental_organizations.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/williams_treaty/environmental_organizations.geojson
     initial_visibility: false
     status: available
     active: true  # Now available in S3
@@ -441,7 +441,7 @@ layers:
     name: Williams Treaty First Nations
     category: communities
     type: point
-    data_url: /data/datasets/boundaries/williams_treaty_communities.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/boundaries/williams_treaty_communities.geojson
     initial_visibility: false
     status: available
 
