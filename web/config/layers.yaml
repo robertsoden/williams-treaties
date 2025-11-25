@@ -644,6 +644,23 @@ layers:
     style:
       opacity: 0.7
       before_layer: treaty-fill
+      raster_color:
+        range: [-0.2, 0.9]
+        stops:
+          - value: -0.2
+            color: '#d73027'
+          - value: 0.0
+            color: '#fc8d59'
+          - value: 0.2
+            color: '#fee08b'
+          - value: 0.4
+            color: '#d9ef8b'
+          - value: 0.6
+            color: '#91cf60'
+          - value: 0.8
+            color: '#1a9850'
+          - value: 0.9
+            color: '#006837'
 
     legend:
       type: gradient
@@ -676,6 +693,48 @@ layers:
     style:
       opacity: 0.7
       before_layer: treaty-fill
+      raster_color:
+        type: categorical
+        range: [0, 20]
+        stops:
+          - value: 1
+            color: '#003d00'
+          - value: 2
+            color: '#006300'
+          - value: 3
+            color: '#008000'
+          - value: 4
+            color: '#144f14'
+          - value: 5
+            color: '#286428'
+          - value: 6
+            color: '#507850'
+          - value: 7
+            color: '#009600'
+          - value: 8
+            color: '#c8c832'
+          - value: 9
+            color: '#aac83c'
+          - value: 10
+            color: '#64aa3c'
+          - value: 11
+            color: '#cdcd66'
+          - value: 12
+            color: '#00c8ff'
+          - value: 13
+            color: '#96c8c8'
+          - value: 14
+            color: '#ffff00'
+          - value: 15
+            color: '#ff9b00'
+          - value: 16
+            color: '#ff0000'
+          - value: 17
+            color: '#aaaaaa'
+          - value: 18
+            color: '#c8c8c8'
+          - value: 19
+            color: '#0000ff'
 
     legend:
       type: categorical
@@ -738,6 +797,48 @@ layers:
     style:
       opacity: 0.7
       before_layer: treaty-fill
+      raster_color:
+        type: categorical
+        range: [0, 20]
+        stops:
+          - value: 1
+            color: '#003d00'
+          - value: 2
+            color: '#006300'
+          - value: 3
+            color: '#008000'
+          - value: 4
+            color: '#144f14'
+          - value: 5
+            color: '#286428'
+          - value: 6
+            color: '#507850'
+          - value: 7
+            color: '#009600'
+          - value: 8
+            color: '#c8c832'
+          - value: 9
+            color: '#aac83c'
+          - value: 10
+            color: '#64aa3c'
+          - value: 11
+            color: '#cdcd66'
+          - value: 12
+            color: '#00c8ff'
+          - value: 13
+            color: '#96c8c8'
+          - value: 14
+            color: '#ffff00'
+          - value: 15
+            color: '#ff9b00'
+          - value: 16
+            color: '#ff0000'
+          - value: 17
+            color: '#aaaaaa'
+          - value: 18
+            color: '#c8c8c8'
+          - value: 19
+            color: '#0000ff'
 
     legend:
       type: categorical
@@ -800,6 +901,48 @@ layers:
     style:
       opacity: 0.7
       before_layer: treaty-fill
+      raster_color:
+        type: categorical
+        range: [0, 20]
+        stops:
+          - value: 1
+            color: '#003d00'
+          - value: 2
+            color: '#006300'
+          - value: 3
+            color: '#008000'
+          - value: 4
+            color: '#144f14'
+          - value: 5
+            color: '#286428'
+          - value: 6
+            color: '#507850'
+          - value: 7
+            color: '#009600'
+          - value: 8
+            color: '#c8c832'
+          - value: 9
+            color: '#aac83c'
+          - value: 10
+            color: '#64aa3c'
+          - value: 11
+            color: '#cdcd66'
+          - value: 12
+            color: '#00c8ff'
+          - value: 13
+            color: '#96c8c8'
+          - value: 14
+            color: '#ffff00'
+          - value: 15
+            color: '#ff9b00'
+          - value: 16
+            color: '#ff0000'
+          - value: 17
+            color: '#aaaaaa'
+          - value: 18
+            color: '#c8c8c8'
+          - value: 19
+            color: '#0000ff'
 
     legend:
       type: categorical

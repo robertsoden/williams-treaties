@@ -529,20 +529,57 @@ class LayerManager {
     async loadMapboxRasterLayer(layer) {
         console.log(`Loading Mapbox raster tileset: ${layer.name}`);
 
-        // Extract tileset ID from mapbox:// URL (e.g., "mapbox://robertsoden.ndvi_2024" -> "robertsoden.ndvi_2024")
-        const tilesetId = layer.data_url.replace('mapbox://', '');
-
-        // Get the access token from mapboxgl
-        const accessToken = mapboxgl.accessToken;
-
-        // Add source using raster tiles URL pattern for Mapbox tilesets
+        // Add source using mapbox:// URL directly
         this.map.addSource(layer.id, {
             type: 'raster',
-            tiles: [
-                `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.png?access_token=${accessToken}`
-            ],
+            url: layer.data_url,
             tileSize: 256
         });
+
+        // Build paint properties
+        const paint = {
+            'raster-opacity': layer.style?.opacity || 0.7
+        };
+
+        // Apply raster-color styling if defined
+        if (layer.style?.raster_color) {
+            const colorConfig = layer.style.raster_color;
+
+            let colorExpr;
+
+            if (colorConfig.type === 'categorical') {
+                // Build step expression for categorical data (land cover classes)
+                colorExpr = [
+                    'step',
+                    ['raster-value'],
+                    'transparent'  // default color for values below first stop
+                ];
+
+                // Add color stops (step uses: value1, color1, value2, color2, ...)
+                colorConfig.stops.forEach(stop => {
+                    colorExpr.push(stop.value, stop.color);
+                });
+            } else {
+                // Build interpolate expression for continuous data (NDVI, elevation)
+                colorExpr = [
+                    'interpolate',
+                    ['linear'],
+                    ['raster-value']
+                ];
+
+                // Add color stops
+                colorConfig.stops.forEach(stop => {
+                    colorExpr.push(stop.value, stop.color);
+                });
+            }
+
+            paint['raster-color'] = colorExpr;
+
+            // Set color range if specified
+            if (colorConfig.range) {
+                paint['raster-color-range'] = colorConfig.range;
+            }
+        }
 
         // Add raster layer
         const beforeLayer = layer.style?.before_layer || undefined;
@@ -551,9 +588,7 @@ class LayerManager {
             id: `${layer.id}-layer`,
             type: 'raster',
             source: layer.id,
-            paint: {
-                'raster-opacity': layer.style?.opacity || 0.7
-            }
+            paint: paint
         }, beforeLayer);
 
         // Initially hide if not visible
