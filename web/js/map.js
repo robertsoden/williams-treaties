@@ -105,7 +105,7 @@ async function initializeMap() {
 
         // Fit to Williams Treaty territory bounds
         map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
-            padding: 20,
+            padding: 80,
             duration: 0  // No animation on initial load
         });
 
