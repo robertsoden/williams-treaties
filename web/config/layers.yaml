@@ -925,7 +925,7 @@ layers:
     name: Contour Lines
     category: topography
     type: line
-    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/contours.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/williams_treaty_contours.geojson
     initial_visibility: false
     status: available
     active: true
