@@ -290,7 +290,7 @@ class LayerManager {
      */
     async loadLayer(layer) {
         try {
-            if (layer.type === 'point' || layer.type === 'polygon') {
+            if (layer.type === 'point' || layer.type === 'polygon' || layer.type === 'line') {
                 return await this.loadVectorLayer(layer);
             } else if (layer.type === 'raster') {
                 return await this.loadRasterLayer(layer);
@@ -338,6 +338,8 @@ class LayerManager {
             this.addPointLayer(layer);
         } else if (layer.type === 'polygon') {
             this.addPolygonLayer(layer);
+        } else if (layer.type === 'line') {
+            this.addLineLayer(layer);
         }
 
         // Add click handlers
@@ -464,6 +466,30 @@ class LayerManager {
         if (!layer.initial_visibility) {
             this.map.setLayoutProperty(`${layer.id}-fill`, 'visibility', 'none');
             this.map.setLayoutProperty(`${layer.id}-outline`, 'visibility', 'none');
+        }
+    }
+
+    /**
+     * Add a line layer
+     */
+    addLineLayer(layer) {
+        const style = layer.style?.line || layer.style || {};
+        const beforeLayer = style.before_layer || undefined;
+
+        this.map.addLayer({
+            id: `${layer.id}-line`,
+            type: 'line',
+            source: layer.id,
+            paint: {
+                'line-color': style.color || '#000000',
+                'line-width': style.width || 1,
+                'line-opacity': style.opacity !== undefined ? style.opacity : 1
+            }
+        }, beforeLayer);
+
+        // Initially hide if not visible
+        if (!layer.initial_visibility) {
+            this.map.setLayoutProperty(`${layer.id}-line`, 'visibility', 'none');
         }
     }
 
@@ -860,6 +886,11 @@ class LayerManager {
                 if (this.map.getLayer(`${layerId}-fill`)) {
                     this.map.setLayoutProperty(`${layerId}-fill`, 'visibility', visible ? 'visible' : 'none');
                     this.map.setLayoutProperty(`${layerId}-outline`, 'visibility', visible ? 'visible' : 'none');
+                    console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
+                }
+            } else if (layer.type === 'line') {
+                if (this.map.getLayer(`${layerId}-line`)) {
+                    this.map.setLayoutProperty(`${layerId}-line`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
                 }
             } else if (layer.type === 'raster' || layer.type === 'mapbox-raster') {
