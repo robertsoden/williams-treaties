@@ -627,44 +627,6 @@ layers:
     info:
       description: 122 communities in Williams Treaty territory (2021 data)
 
-  - id: csicp
-    name: Cultural Infrastructure Funding
-    category: community_data
-    type: point
-    data_url: /data/processed/csicp/csicp_funding.geojson
-    initial_visibility: false
-    status: available
-    active: false  # Deactivated - data not in S3 yet
-    lazy_load: true
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
-
-    style:
-      circle:
-        radius: 8
-        color: '#9e0142'
-        opacity: 0.9
-        stroke_width: 2
-        stroke_color: '#ffffff'
-
-    popup:
-      title_field: project_name
-      fields:
-        - label: Group
-          field: group_name
-        - label: Community
-          field: matched_community
-        - label: Type
-          field: project_type
-        - label: Funding
-          field: funding
-          format: '${value:,.0f}'
-
-    info:
-      description: CSICP projects ($60,000)
-
   # ============================================================================
   # VEGETATION
   # ============================================================================
@@ -959,68 +921,32 @@ layers:
   # TOPOGRAPHY
   # ============================================================================
 
-  - id: elevation
-    name: Elevation (DEM)
+  - id: contours
+    name: Contour Lines
     category: topography
-    type: raster
-    data_url: /data/processed/dem/elevation.tif
+    type: line
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/contours.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - raster data not in S3 yet
+    active: true
     lazy_load: true
-    requires_library: georaster
-
-    # Override to use local-only mode (raster data not in S3 yet)
-    data_source:
-      mode: local
-
-    # Coordinate adjustment to fix alignment issues
-    coordinate_adjustment:
-      shift_multiplier: 45.36  # Pixel height multiplier for latitude shift
-      shift_axis: latitude     # Which axis to adjust (latitude = y-axis)
-      shift_direction: negative # Shift direction (negative = subtract)
 
     style:
-      opacity: 0.6
-      color_scale:
-        type: continuous
-        steps:
-          - [75, [8, 48, 107, 180]]         # Dark blue - water/lake level
-          - [150, [33, 113, 181, 180]]      # Medium blue - lowlands
-          - [225, [66, 146, 198, 180]]      # Light blue - low elevation
-          - [300, [107, 174, 214, 180]]     # Pale blue - moderate
-          - [350, [158, 202, 225, 180]]     # Very pale blue/cyan
-          - [400, [198, 219, 239, 180]]     # Almost white-blue
-          - [450, [253, 208, 162, 180]]     # Light orange - highlands
-          - [500, [253, 174, 107, 180]]     # Orange - high elevation
-          - [550, [241, 105, 19, 180]]      # Dark orange - mountains
-          - [600, [217, 72, 1, 200]]        # Red-orange - highest peaks
-      before_layer: treaty-fill
+      line:
+        color: '#8B4513'
+        width: 0.5
+        opacity: 0.6
 
-    legend:
-      type: gradient
-      title: Elevation Legend
-      gradient: linear-gradient(to right, #08306b, #2171b5, #6baed6, #c6dbef, #fdd0a2, #fdae6b, #f16913, #d94801)
-      stops:
-        - value: 7
-          label: Water
-          unit: m
-        - value: 150
-          label: Lowlands
-          unit: m
-        - value: 300
-          label: Moderate
-          unit: m
-        - value: 450
-          label: Highlands
-          unit: m
-        - value: 582
-          label: Peaks
-          unit: m
-      description: "CDEM 2m elevation data - Real terrain (Peterborough/Kingston region)"
+    popup:
+      title_default: Contour Line
+      fields:
+        - label: Elevation
+          field: CONTOUR_ELEVATION
+          format: '{value} m'
+          optional: true
 
     info:
-      description: "Canadian Digital Elevation Model (CDEM) at 2m resolution showing real terrain elevation. Current coverage: eastern Williams Treaty area (Peterborough/Kingston region)"
+      description: Topographic contour lines showing elevation changes across Williams Treaty territory. Source: Ontario GeoHub.
 
   # ============================================================================
   # BIODIVERSITY
@@ -1030,15 +956,11 @@ layers:
     name: eBird Observations
     category: biodiversity
     type: point
-    data_url: /data/processed/biodiversity/ebird_observations_recent.json
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/ebird_observations.geojson
     initial_visibility: false
     status: available
-    active: false  # Deactivated - data not in S3 yet
+    active: true
     lazy_load: true
-
-    # Override to use local-only mode (data not in S3 yet)
-    data_source:
-      mode: local
 
     style:
       circle:
@@ -1136,7 +1058,7 @@ layers:
     data_url: /data/processed/fuel/fuel_types_web.tif
     initial_visibility: false
     status: available
-    active: false  # Deactivated - raster data not in S3 yet
+    active: false  # Deactivated - data not yet in ontario-environmental-data S3
     lazy_load: true
     requires_library: georaster
 
