@@ -632,10 +632,10 @@ layers:
   # ============================================================================
 
   - id: ndvi
-    name: NDVI 2024 (Vegetation Index)
+    name: NDVI 2023 (Vegetation Index)
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.ndvi_2024
+    data_url: mapbox://robertsoden.ndvi_2023
     initial_visibility: false
     status: available
     active: true
@@ -644,22 +644,24 @@ layers:
     style:
       opacity: 0.7
       before_layer: treaty-fill
+      # 8-bit scaled: value 1 = NDVI -1.0, value 255 = NDVI +1.0
+      # Formula: 8bit_value = (ndvi + 1) / 2 * 254 + 1
       raster_color:
-        range: [-0.2, 0.9]
+        range: [102, 242]
         stops:
-          - value: -0.2
+          - value: 102
             color: '#d73027'
-          - value: 0.0
+          - value: 128
             color: '#fc8d59'
-          - value: 0.2
+          - value: 153
             color: '#fee08b'
-          - value: 0.4
+          - value: 178
             color: '#d9ef8b'
-          - value: 0.6
+          - value: 204
             color: '#91cf60'
-          - value: 0.8
+          - value: 229
             color: '#1a9850'
-          - value: 0.9
+          - value: 242
             color: '#006837'
 
     legend:
@@ -678,7 +680,7 @@ layers:
       description: Vegetation health indicator
 
     info:
-      description: Annual 2024 MODIS 250m resolution vegetation health index served via Mapbox Tilesets (zoom 5-10)
+      description: Peak annual 2023 MODIS 250m vegetation index (max NDVI across year) served via Mapbox Tilesets
 
   - id: landcover
     name: Land Cover 2020
