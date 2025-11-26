@@ -104,8 +104,14 @@ async function initializeMap() {
         console.log('✓ Map loaded and ready');
 
         // Fit to Williams Treaty territory bounds
+        // Account for layer panel on left (380px) by adding extra padding on left
         map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
-            padding: 80,
+            padding: {
+                top: 50,
+                bottom: 50,
+                left: 430,  // 380px panel + 50px extra padding
+                right: 50
+            },
             duration: 0  // No animation on initial load
         });
 
