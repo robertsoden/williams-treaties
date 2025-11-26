@@ -21,21 +21,20 @@ body {
 
 /* Layer Control Panel */
 #layer-control {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 320px;
-    max-height: calc(100vh - 40px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 380px;
+    height: 100vh;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     z-index: 1000;
     transition: transform 0.3s ease;
 }
 
 #layer-control.hidden {
-    transform: translateX(calc(100% + 20px));
+    transform: translateX(-100%);
 }
 
 /* Control Header */
@@ -43,7 +42,6 @@ body {
     padding: 20px;
     background: linear-gradient(135deg, #2c5f2d 0%, #97bc62 100%);
     color: white;
-    border-radius: 8px 8px 0 0;
 }
 
 .control-header h2 {
@@ -226,7 +224,6 @@ body {
 .control-footer {
     padding: 12px 20px;
     background: #f8f9fa;
-    border-radius: 0 0 8px 8px;
 }
 
 .control-footer small {
@@ -237,9 +234,9 @@ body {
 
 /* Info Panel (Toggle Button) */
 #info-panel {
-    position: absolute;
+    position: fixed;
     top: 20px;
-    right: 20px;
+    left: 20px;
     z-index: 999;
     display: none;
 }
@@ -319,8 +316,7 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     #layer-control {
-        width: calc(100% - 40px);
-        max-width: 320px;
+        width: 100%;
     }
 }
 
