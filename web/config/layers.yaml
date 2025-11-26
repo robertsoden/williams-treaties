@@ -642,45 +642,26 @@ layers:
     lazy_load: true
 
     style:
-      opacity: 0.7
+      opacity: 0.8
       before_layer: treaty-fill
-      # 8-bit scaled: value 1 = NDVI -1.0, value 255 = NDVI +1.0
-      # Formula: 8bit_value = (ndvi + 1) / 2 * 254 + 1
-      raster_color:
-        range: [102, 242]
-        stops:
-          - value: 102
-            color: '#d73027'
-          - value: 128
-            color: '#fc8d59'
-          - value: 153
-            color: '#fee08b'
-          - value: 178
-            color: '#d9ef8b'
-          - value: 204
-            color: '#91cf60'
-          - value: 229
-            color: '#1a9850'
-          - value: 242
-            color: '#006837'
+      # Note: raster_color removed - Mapbox converts to RGB on upload
+      # NDVI displays as grayscale (darker = less vegetation, lighter = more)
 
     legend:
       type: gradient
       title: NDVI Legend
-      gradient: linear-gradient(to right, #d33027, #fc8d59, #fee08b, #d9ef8b, #91cf60, #1a9850, #006837)
+      gradient: linear-gradient(to right, #333333, #666666, #999999, #cccccc, #ffffff)
       stops:
-        - value: 0.2
+        - value: 0.0
           label: Low
-        - value: 0.4
+        - value: 0.5
           label: Moderate
-        - value: 0.6
+        - value: 1.0
           label: High
-        - value: 0.8
-          label: Dense
-      description: Vegetation health indicator
+      description: Vegetation density (grayscale - lighter = more vegetation)
 
     info:
-      description: Peak annual 2023 MODIS 250m vegetation index (max NDVI across year) served via Mapbox Tilesets
+      description: Peak annual 2023 MODIS 250m vegetation index (max NDVI across year) served via Mapbox Tilesets. Displayed as grayscale.
 
   - id: landcover
     name: Land Cover 2020
@@ -693,50 +674,9 @@ layers:
     lazy_load: true
 
     style:
-      opacity: 0.7
+      opacity: 0.8
       before_layer: treaty-fill
-      raster_color:
-        type: categorical
-        range: [0, 20]
-        stops:
-          - value: 1
-            color: '#003d00'
-          - value: 2
-            color: '#006300'
-          - value: 3
-            color: '#008000'
-          - value: 4
-            color: '#144f14'
-          - value: 5
-            color: '#286428'
-          - value: 6
-            color: '#507850'
-          - value: 7
-            color: '#009600'
-          - value: 8
-            color: '#c8c832'
-          - value: 9
-            color: '#aac83c'
-          - value: 10
-            color: '#64aa3c'
-          - value: 11
-            color: '#cdcd66'
-          - value: 12
-            color: '#00c8ff'
-          - value: 13
-            color: '#96c8c8'
-          - value: 14
-            color: '#ffff00'
-          - value: 15
-            color: '#ff9b00'
-          - value: 16
-            color: '#ff0000'
-          - value: 17
-            color: '#aaaaaa'
-          - value: 18
-            color: '#c8c8c8'
-          - value: 19
-            color: '#0000ff'
+      # Note: raster_color removed - tiles are pre-rendered RGB from Mapbox upload
 
     legend:
       type: categorical
@@ -797,50 +737,9 @@ layers:
     lazy_load: true
 
     style:
-      opacity: 0.7
+      opacity: 0.8
       before_layer: treaty-fill
-      raster_color:
-        type: categorical
-        range: [0, 20]
-        stops:
-          - value: 1
-            color: '#003d00'
-          - value: 2
-            color: '#006300'
-          - value: 3
-            color: '#008000'
-          - value: 4
-            color: '#144f14'
-          - value: 5
-            color: '#286428'
-          - value: 6
-            color: '#507850'
-          - value: 7
-            color: '#009600'
-          - value: 8
-            color: '#c8c832'
-          - value: 9
-            color: '#aac83c'
-          - value: 10
-            color: '#64aa3c'
-          - value: 11
-            color: '#cdcd66'
-          - value: 12
-            color: '#00c8ff'
-          - value: 13
-            color: '#96c8c8'
-          - value: 14
-            color: '#ffff00'
-          - value: 15
-            color: '#ff9b00'
-          - value: 16
-            color: '#ff0000'
-          - value: 17
-            color: '#aaaaaa'
-          - value: 18
-            color: '#c8c8c8'
-          - value: 19
-            color: '#0000ff'
+      # Note: raster_color removed - tiles are pre-rendered RGB from Mapbox upload
 
     legend:
       type: categorical
@@ -901,50 +800,9 @@ layers:
     lazy_load: true
 
     style:
-      opacity: 0.7
+      opacity: 0.8
       before_layer: treaty-fill
-      raster_color:
-        type: categorical
-        range: [0, 20]
-        stops:
-          - value: 1
-            color: '#003d00'
-          - value: 2
-            color: '#006300'
-          - value: 3
-            color: '#008000'
-          - value: 4
-            color: '#144f14'
-          - value: 5
-            color: '#286428'
-          - value: 6
-            color: '#507850'
-          - value: 7
-            color: '#009600'
-          - value: 8
-            color: '#c8c832'
-          - value: 9
-            color: '#aac83c'
-          - value: 10
-            color: '#64aa3c'
-          - value: 11
-            color: '#cdcd66'
-          - value: 12
-            color: '#00c8ff'
-          - value: 13
-            color: '#96c8c8'
-          - value: 14
-            color: '#ffff00'
-          - value: 15
-            color: '#ff9b00'
-          - value: 16
-            color: '#ff0000'
-          - value: 17
-            color: '#aaaaaa'
-          - value: 18
-            color: '#c8c8c8'
-          - value: 19
-            color: '#0000ff'
+      # Note: raster_color removed - tiles are pre-rendered RGB from Mapbox upload
 
     legend:
       type: categorical
