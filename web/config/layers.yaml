@@ -49,9 +49,13 @@ categories:
     name: Biodiversity
     order: 10
 
+  - id: climate
+    name: Climate Risk
+    order: 11
+
   - id: satellite
     name: Satellite Data
-    order: 11
+    order: 12
 
 # Layer definitions
 layers:
@@ -802,6 +806,49 @@ layers:
         Source: Environment and Climate Change Canada (ECCC).
 
   # ============================================================================
+  # CLIMATE RISK
+  # ============================================================================
+
+  - id: flood_2m
+    name: 2m Flood Zones
+    category: climate
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/climate/flood_2m.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#0077be'
+        opacity: 0.5
+      outline:
+        color: '#005a8c'
+        width: 1
+        opacity: 0.8
+
+    popup:
+      title_default: Flood Zone
+      fields:
+        - label: Flood Depth
+          field: flood_depth_m
+          format: '{value} m'
+        - label: Scenario
+          field: scenario
+
+    legend:
+      type: items
+      title: Flood Risk Areas
+      items:
+        - color: rgba(0, 119, 190, 0.5)
+          border: 1px solid #005a8c
+          label: 2m flood inundation zone
+
+    info:
+      description: Areas at risk of flooding under a 2m water level rise scenario. Useful for understanding coastal and low-lying area vulnerability.
+
+  # ============================================================================
   # VEGETATION
   # ============================================================================
 
@@ -965,7 +1012,7 @@ layers:
     name: Land Cover 2010
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.landcover_2010
+    data_url: mapbox://robertsoden.lc2010rgb
     initial_visibility: false
     status: available
     active: false
