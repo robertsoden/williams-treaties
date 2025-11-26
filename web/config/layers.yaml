@@ -41,13 +41,17 @@ categories:
     name: Public Health
     order: 8
 
+  - id: environmental_justice
+    name: Environmental Justice
+    order: 9
+
   - id: biodiversity
     name: Biodiversity
-    order: 9
+    order: 10
 
   - id: satellite
     name: Satellite Data
-    order: 10
+    order: 11
 
 # Layer definitions
 layers:
@@ -732,6 +736,72 @@ layers:
       description: Public health indicators from OCHPP aggregated by Ontario Health Region. Includes chronic disease prevalence, mental health metrics, and healthcare access.
 
   # ============================================================================
+  # ENVIRONMENTAL JUSTICE
+  # ============================================================================
+
+  - id: npri_facilities
+    name: NPRI Polluting Facilities
+    category: environmental_justice
+    type: point
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental_justice/npri_facilities.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        opacity: 0.85
+        stroke_width: 1.5
+        stroke_color: '#ffffff'
+        # Color by industry sector
+        color:
+          type: categorical
+          field: sector_en
+          values:
+            'Conventional Oil and Gas extraction': '#4d4d4d'
+            'Mining and Quarrying': '#8c564b'
+            'Electric Power Generation, Transmission and Distribution': '#e7ba52'
+            'Pulp and Paper': '#7b4173'
+            'Other Manufacturing': '#637939'
+            'Waste Treatment and Disposal': '#31a354'
+            'Metal Ore Mining': '#843c39'
+          default: '#DC143C'  # Crimson default
+
+    popup:
+      title_field: facility_name
+      title_default: NPRI Facility
+      fields:
+        - label: Company
+          field: company_name
+        - label: Address
+          field: address
+        - label: City
+          field: city
+        - label: Industry Sector
+          field: sector_en
+        - label: NAICS Code
+          field: naics_code
+        - label: Reporting Year
+          field: reporting_year
+
+    legend:
+      type: items
+      title: Polluting Facilities
+      items:
+        - color: '#DC143C'
+          border: 1.5px solid #ffffff
+          label: NPRI Reporting Facility
+      description: Facilities reporting pollutant releases to ECCC
+
+    info:
+      description: |
+        1,630 National Pollutant Release Inventory (NPRI) facilities in Ontario.
+        These industrial facilities report releases of pollutants to air, water, and land.
+        Source: Environment and Climate Change Canada (ECCC).
+
+  # ============================================================================
   # VEGETATION
   # ============================================================================
 
@@ -769,7 +839,7 @@ layers:
     name: Land Cover 2020
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.landcover_2020
+    data_url: mapbox://robertsoden.lc2020colored
     initial_visibility: false
     status: available
     active: true
@@ -832,7 +902,7 @@ layers:
     name: Land Cover 2015
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.landcover_2015
+    data_url: mapbox://robertsoden.lc2015clr
     initial_visibility: false
     status: available
     active: true
