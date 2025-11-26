@@ -107,8 +107,8 @@ async function initializeMap() {
         // Account for layer panel on left (380px) by adding extra padding on left
         map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
             padding: {
-                top: 80,
-                bottom: 80,
+                top: 120,
+                bottom: 120,
                 left: 450,  // 380px panel + 70px extra padding
                 right: 80
             },
