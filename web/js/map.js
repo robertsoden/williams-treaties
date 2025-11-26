@@ -12,7 +12,7 @@ const MIN_ZOOM = 3;  // Allows zooming out to see broader context
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
     CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || WILLIAMS_TREATY_CENTER,
-    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 4,
+    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 6,
     BASEMAPS: {
         streets: 'mapbox://styles/mapbox/streets-v12',
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
@@ -109,18 +109,8 @@ async function initializeMap() {
     map.on('load', async () => {
         console.log('✓ Map loaded and ready');
 
-        // Fit to Williams Treaty territory bounds
-        // Account for layer panel on left (380px) by adding extra padding on left
-        map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
-            padding: {
-                top: 60,
-                bottom: 60,
-                left: 450,  // 380px panel + 70px extra padding
-                right: 60
-            },
-            maxZoom: 6,  // Don't zoom in closer than this on initial load
-            duration: 0  // No animation on initial load
-        });
+        // Adjust center to account for left panel (shift view slightly right)
+        map.panBy([-150, 0], { duration: 0 });
 
         // Check library availability
         if (typeof parseGeoraster !== 'undefined') {

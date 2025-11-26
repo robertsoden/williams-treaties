@@ -813,15 +813,11 @@ layers:
     name: Georgina Island 2m Flood Zones
     category: climate
     type: polygon
-    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/climate/flood_2m.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/climate/flood_2m_georgina.geojson
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
-
-    zoom_on_show:
-      bounds: [[-79.35, 44.29], [-79.22, 44.42]]
-      padding: 50
 
     style:
       fill:
