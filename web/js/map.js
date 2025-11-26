@@ -11,8 +11,8 @@ const MIN_ZOOM = 3;  // Allows zooming out to see broader context
 
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
-    CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || WILLIAMS_TREATY_CENTER,
-    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 6,
+    CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || [-80, 45.5],
+    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 7.2,
     BASEMAPS: {
         streets: 'mapbox://styles/mapbox/streets-v12',
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
