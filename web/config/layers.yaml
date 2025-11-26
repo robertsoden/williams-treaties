@@ -635,7 +635,7 @@ layers:
     name: NDVI 2023 (Vegetation Index)
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.ndvi_2023
+    data_url: mapbox://robertsoden.ndvi_2023_colored
     initial_visibility: false
     status: available
     active: true
@@ -644,13 +644,11 @@ layers:
     style:
       opacity: 0.8
       before_layer: treaty-fill
-      # Note: raster_color removed - Mapbox converts to RGB on upload
-      # NDVI displays as grayscale (darker = less vegetation, lighter = more)
 
     legend:
       type: gradient
-      title: NDVI Legend
-      gradient: linear-gradient(to right, #333333, #666666, #999999, #cccccc, #ffffff)
+      title: Vegetation Index (NDVI)
+      gradient: linear-gradient(to right, #d73027, #fc8d59, #fee08b, #d9ef8b, #91cf60, #1a9850, #006837)
       stops:
         - value: 0.0
           label: Low
@@ -658,10 +656,10 @@ layers:
           label: Moderate
         - value: 1.0
           label: High
-      description: Vegetation density (grayscale - lighter = more vegetation)
+      description: Red = sparse/bare, Green = dense vegetation
 
     info:
-      description: Peak annual 2023 MODIS 250m vegetation index (max NDVI across year) served via Mapbox Tilesets. Displayed as grayscale.
+      description: Peak annual 2023 MODIS 250m vegetation index (max NDVI across year). Red indicates sparse/bare land, green indicates dense vegetation.
 
   - id: landcover
     name: Land Cover 2020
