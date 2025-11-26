@@ -7,7 +7,7 @@ const WILLIAMS_TREATY_CENTER = [-78.65, 44.9];
 
 // Extended bounds for max pan area (allows some context around the territory)
 const MAX_BOUNDS = [[-82.0, 42.5], [-75.0, 47.5]];
-const MIN_ZOOM = 5;  // Prevents zooming out too far
+const MIN_ZOOM = 4;  // Prevents zooming out too far
 
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
