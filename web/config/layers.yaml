@@ -810,7 +810,7 @@ layers:
   # ============================================================================
 
   - id: flood_2m
-    name: 2m Flood Zones
+    name: Georgina Island 2m Flood Zones
     category: climate
     type: polygon
     data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/climate/flood_2m.geojson
@@ -818,6 +818,10 @@ layers:
     status: available
     active: true
     lazy_load: true
+
+    zoom_on_show:
+      bounds: [[-79.35, 44.29], [-79.22, 44.42]]
+      padding: 50
 
     style:
       fill:
@@ -846,7 +850,7 @@ layers:
           label: 2m flood inundation zone
 
     info:
-      description: Areas at risk of flooding under a 2m water level rise scenario. Useful for understanding coastal and low-lying area vulnerability.
+      description: Areas on Georgina Island (Chippewas of Georgina Island First Nation) at risk of flooding under a 2m water level rise scenario.
 
   # ============================================================================
   # VEGETATION

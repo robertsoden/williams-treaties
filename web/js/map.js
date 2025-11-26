@@ -118,7 +118,7 @@ async function initializeMap() {
                 left: 450,  // 380px panel + 70px extra padding
                 right: 60
             },
-            maxZoom: 5,  // Don't zoom in closer than this on initial load
+            maxZoom: 6,  // Don't zoom in closer than this on initial load
             duration: 0  // No animation on initial load
         });
 
