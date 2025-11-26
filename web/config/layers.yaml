@@ -409,7 +409,7 @@ layers:
   # ============================================================================
 
   - id: charities
-    name: Environmental Charities
+    name: Ontario Registered Charities
     category: organizations
     type: point
     data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/organizations/environmental_organizations.geojson
@@ -443,7 +443,7 @@ layers:
           type: link
 
     info:
-      description: 186 environmental organizations
+      description: 186 Ontario registered charities filtered to focus on Indigenous or environmental topics within Williams Treaty territory.
 
   # ============================================================================
   # COMMUNITIES
