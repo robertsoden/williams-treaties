@@ -5,8 +5,8 @@
 const WILLIAMS_TREATY_BOUNDS = [[-80.3, 43.8], [-77.0, 46.0]];
 const WILLIAMS_TREATY_CENTER = [-78.65, 44.9];
 
-// Extended bounds for max pan area (allows some context around the territory)
-const MAX_BOUNDS = [[-82.0, 42.5], [-75.0, 47.5]];
+// Extended bounds for max pan area (allows broader context around the territory)
+const MAX_BOUNDS = [[-90.0, 38.0], [-65.0, 52.0]];
 const MIN_ZOOM = 3;  // Allows zooming out to see broader context
 
 let CONFIG = {
