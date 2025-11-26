@@ -37,13 +37,17 @@ categories:
     name: Community Data
     order: 7
 
+  - id: health
+    name: Public Health
+    order: 8
+
   - id: biodiversity
     name: Biodiversity
-    order: 8
+    order: 9
 
   - id: satellite
     name: Satellite Data
-    order: 9
+    order: 10
 
 # Layer definitions
 layers:
@@ -628,6 +632,106 @@ layers:
       description: 122 communities in Williams Treaty territory (2021 data)
 
   # ============================================================================
+  # PUBLIC HEALTH
+  # ============================================================================
+
+  - id: phu_boundaries
+    name: Public Health Unit Boundaries
+    category: health
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/health/phu_boundaries.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#20B2AA'
+        opacity: 0.1
+      outline:
+        color: '#008B8B'
+        width: 2
+        opacity: 0.7
+      before_layer: treaty-fill
+
+    popup:
+      title_field: name
+      fields:
+        - label: Area (km²)
+          field: area_sq_km
+          format: number
+          optional: true
+
+    info:
+      description: Ontario's 34 Public Health Units responsible for local public health services
+
+  - id: health_indicators
+    name: Health Indicators by Region
+    category: health
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/health/health_indicators.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        # Choropleth coloring based on diabetes rate
+        color:
+          type: interpolate
+          field: diabetes_rate
+          stops:
+            - [9, '#1a9850']   # Low - green
+            - [10, '#91cf60']
+            - [11, '#d9ef8b']
+            - [12, '#fee08b']
+            - [13, '#fc8d59']
+            - [14, '#d73027']  # High - red
+        opacity: 0.6
+      outline:
+        color: '#555'
+        width: 1
+        opacity: 0.6
+      before_layer: treaty-fill
+
+    popup:
+      title_field: name
+      fields:
+        - label: Ontario Health Region
+          field: oh_region
+        - label: Diabetes Rate (%)
+          field: diabetes_rate
+        - label: Hypertension Rate (%)
+          field: hypertension_rate
+        - label: Asthma Rate (%)
+          field: asthma_rate
+        - label: COPD Rate (%)
+          field: copd_rate
+        - label: Mental Health Visits (per 100)
+          field: mental_health_visits
+        - label: Primary Care Attachment (%)
+          field: primary_care_attachment
+          optional: true
+
+    legend:
+      type: gradient
+      title: Diabetes Prevalence (%)
+      gradient: linear-gradient(to right, #1a9850, #91cf60, #d9ef8b, #fee08b, #fc8d59, #d73027)
+      stops:
+        - value: 9
+          label: 9%
+        - value: 11
+          label: 11%
+        - value: 14
+          label: 14%
+      description: Age-standardized diabetes prevalence by Ontario Health Region
+
+    info:
+      description: Public health indicators from OCHPP aggregated by Ontario Health Region. Includes chronic disease prevalence, mental health metrics, and healthcare access.
+
+  # ============================================================================
   # VEGETATION
   # ============================================================================
 
@@ -688,35 +792,35 @@ layers:
           color: '#949c70'
         - value: 5
           label: Deciduous Forest
-          color: '#006400'
+          color: '#148c3d'
         - value: 6
           label: Mixed Forest
-          color: '#2c642c'
+          color: '#5c752b'
         - value: 8
           label: Shrubland
-          color: '#895a44'
+          color: '#b38a33'
         - value: 10
           label: Grassland
-          color: '#bbaf66'
+          color: '#e1cf8a'
         - value: 14
           label: Wetland
-          color: '#bcbcbc'
+          color: '#6ba38a'
         - value: 15
           label: Cropland
-          color: '#000058'
+          color: '#e6ae66'
         - value: 16
           label: Barren
-          color: '#7882b5'
+          color: '#a8abae'
         - value: 17
           label: Urban
-          color: '#ff0000'
+          color: '#dc2126'
         - value: 18
           label: Water
-          color: '#a6dbff'
+          color: '#4c70a3'
         - value: 19
           label: Snow/Ice
-          color: '#ffffff'
-      description: 2020 land cover classification
+          color: '#fffaff'
+      description: NALCMS 2020 land cover classification
 
     info:
       description: |
@@ -751,35 +855,35 @@ layers:
           color: '#949c70'
         - value: 5
           label: Deciduous Forest
-          color: '#006400'
+          color: '#148c3d'
         - value: 6
           label: Mixed Forest
-          color: '#2c642c'
+          color: '#5c752b'
         - value: 8
           label: Shrubland
-          color: '#895a44'
+          color: '#b38a33'
         - value: 10
           label: Grassland
-          color: '#bbaf66'
+          color: '#e1cf8a'
         - value: 14
           label: Wetland
-          color: '#bcbcbc'
+          color: '#6ba38a'
         - value: 15
           label: Cropland
-          color: '#000058'
+          color: '#e6ae66'
         - value: 16
           label: Barren
-          color: '#7882b5'
+          color: '#a8abae'
         - value: 17
           label: Urban
-          color: '#ff0000'
+          color: '#dc2126'
         - value: 18
           label: Water
-          color: '#a6dbff'
+          color: '#4c70a3'
         - value: 19
           label: Snow/Ice
-          color: '#ffffff'
-      description: 2015 land cover classification
+          color: '#fffaff'
+      description: NALCMS 2015 land cover classification
 
     info:
       description: |
@@ -814,35 +918,35 @@ layers:
           color: '#949c70'
         - value: 5
           label: Deciduous Forest
-          color: '#006400'
+          color: '#148c3d'
         - value: 6
           label: Mixed Forest
-          color: '#2c642c'
+          color: '#5c752b'
         - value: 8
           label: Shrubland
-          color: '#895a44'
+          color: '#b38a33'
         - value: 10
           label: Grassland
-          color: '#bbaf66'
+          color: '#e1cf8a'
         - value: 14
           label: Wetland
-          color: '#bcbcbc'
+          color: '#6ba38a'
         - value: 15
           label: Cropland
-          color: '#000058'
+          color: '#e6ae66'
         - value: 16
           label: Barren
-          color: '#7882b5'
+          color: '#a8abae'
         - value: 17
           label: Urban
-          color: '#ff0000'
+          color: '#dc2126'
         - value: 18
           label: Water
-          color: '#a6dbff'
+          color: '#4c70a3'
         - value: 19
           label: Snow/Ice
-          color: '#ffffff'
-      description: 2010 land cover classification
+          color: '#fffaff'
+      description: NALCMS 2010 land cover classification
 
     info:
       description: |
