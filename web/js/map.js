@@ -8,7 +8,7 @@ const WILLIAMS_TREATY_CENTER = [-78.65, 44.9];
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
     CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || WILLIAMS_TREATY_CENTER,
-    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 7,
+    ZOOM: (window.MAP_CONFIG && window.MAP_CONFIG.ZOOM) || 6.5,
     BASEMAPS: {
         streets: 'mapbox://styles/mapbox/streets-v12',
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
@@ -107,10 +107,10 @@ async function initializeMap() {
         // Account for layer panel on left (380px) by adding extra padding on left
         map.fitBounds(WILLIAMS_TREATY_BOUNDS, {
             padding: {
-                top: 120,
-                bottom: 120,
+                top: 60,
+                bottom: 60,
                 left: 450,  // 380px panel + 70px extra padding
-                right: 80
+                right: 60
             },
             duration: 0  // No animation on initial load
         });
