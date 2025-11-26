@@ -646,7 +646,7 @@ layers:
     data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/health/phu_boundaries.geojson
     initial_visibility: false
     status: available
-    active: true
+    active: false
     lazy_load: true
 
     style:
@@ -682,17 +682,17 @@ layers:
 
     style:
       fill:
-        # Choropleth coloring based on diabetes rate
+        # Choropleth coloring based on hypertension rate
         color:
           type: interpolate
-          field: diabetes_rate
+          field: hypertension_rate
           stops:
-            - [9, '#1a9850']   # Low - green
-            - [10, '#91cf60']
-            - [11, '#d9ef8b']
-            - [12, '#fee08b']
-            - [13, '#fc8d59']
-            - [14, '#d73027']  # High - red
+            - [20, '#1a9850']   # Low - green
+            - [22, '#91cf60']
+            - [24, '#d9ef8b']
+            - [26, '#fee08b']
+            - [28, '#fc8d59']
+            - [30, '#d73027']  # High - red
         opacity: 0.6
       outline:
         color: '#555'
@@ -721,16 +721,16 @@ layers:
 
     legend:
       type: gradient
-      title: Diabetes Prevalence (%)
+      title: Hypertension Prevalence (%)
       gradient: linear-gradient(to right, #1a9850, #91cf60, #d9ef8b, #fee08b, #fc8d59, #d73027)
       stops:
-        - value: 9
-          label: 9%
-        - value: 11
-          label: 11%
-        - value: 14
-          label: 14%
-      description: Age-standardized diabetes prevalence by Ontario Health Region
+        - value: 20
+          label: 20%
+        - value: 25
+          label: 25%
+        - value: 30
+          label: 30%
+      description: Age-standardized hypertension prevalence by Ontario Health Region
 
     info:
       description: Public health indicators from OCHPP aggregated by Ontario Health Region. Includes chronic disease prevalence, mental health metrics, and healthcare access.
@@ -902,10 +902,10 @@ layers:
     name: Land Cover 2015
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.lc2015clr
+    data_url: mapbox://robertsoden.lc2015rgb
     initial_visibility: false
     status: available
-    active: true
+    active: false
     lazy_load: true
 
     style:
@@ -968,7 +968,7 @@ layers:
     data_url: mapbox://robertsoden.landcover_2010
     initial_visibility: false
     status: available
-    active: true
+    active: false
     lazy_load: true
 
     style:
