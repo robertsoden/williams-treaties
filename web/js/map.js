@@ -5,6 +5,10 @@
 const WILLIAMS_TREATY_BOUNDS = [[-80.3, 43.8], [-77.0, 46.0]];
 const WILLIAMS_TREATY_CENTER = [-78.65, 44.9];
 
+// Extended bounds for max pan area (allows some context around the territory)
+const MAX_BOUNDS = [[-82.0, 42.5], [-75.0, 47.5]];
+const MIN_ZOOM = 5;  // Prevents zooming out too far
+
 let CONFIG = {
     MAPBOX_TOKEN: (window.MAP_CONFIG && window.MAP_CONFIG.MAPBOX_TOKEN) || 'YOUR_MAPBOX_TOKEN_HERE',
     CENTER: (window.MAP_CONFIG && window.MAP_CONFIG.CENTER) || WILLIAMS_TREATY_CENTER,
@@ -86,7 +90,9 @@ async function initializeMap() {
             ? 'mapbox://styles/mapbox/streets-v12'
             : FREE_OSM_STYLE,
         center: CONFIG.CENTER,
-        zoom: CONFIG.ZOOM
+        zoom: CONFIG.ZOOM,
+        minZoom: MIN_ZOOM,
+        maxBounds: MAX_BOUNDS
     });
 
     // Add navigation controls
