@@ -404,6 +404,45 @@ layers:
     info:
       description: Ontario watersheds showing hierarchical drainage basins from primary to quaternary levels
 
+  - id: greenbelt
+    name: Ontario Greenbelt
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/greenbelt_boundary.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#228B22'
+        opacity: 0.25
+      outline:
+        color: '#006400'
+        width: 2
+        opacity: 0.9
+
+    popup:
+      title_default: Ontario Greenbelt
+      fields:
+        - label: Designation
+          field: designation
+        - label: Sector
+          field: sector
+
+    legend:
+      type: items
+      title: Greenbelt
+      items:
+        - color: rgba(34, 139, 34, 0.25)
+          border: 2px solid #006400
+          label: Greenbelt boundary
+      description: Protected green space surrounding Greater Golden Horseshoe
+
+    info:
+      description: Ontario Greenbelt - a protected area of green space, farmland, forests, wetlands, and watersheds surrounding the Greater Golden Horseshoe. Established in 2005 under the Greenbelt Act.
+
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
