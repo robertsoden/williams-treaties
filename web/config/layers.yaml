@@ -405,7 +405,7 @@ layers:
       description: Ontario watersheds showing hierarchical drainage basins from primary to quaternary levels
 
   - id: greenbelt
-    name: Ontario Greenbelt
+    name: Ontario Greenbelt Boundary
     category: boundaries
     type: polygon
     data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/greenbelt_boundary.geojson
@@ -417,10 +417,10 @@ layers:
     style:
       fill:
         color: '#228B22'
-        opacity: 0.25
+        opacity: 0.2
       outline:
         color: '#006400'
-        width: 2
+        width: 2.5
         opacity: 0.9
 
     popup:
@@ -428,20 +428,80 @@ layers:
       fields:
         - label: Designation
           field: designation
-        - label: Sector
-          field: sector
+        - label: Area (hectares)
+          field: hectares
+          format: '{value:,.0f}'
 
     legend:
       type: items
       title: Greenbelt
       items:
-        - color: rgba(34, 139, 34, 0.25)
-          border: 2px solid #006400
+        - color: rgba(34, 139, 34, 0.2)
+          border: 2.5px solid #006400
           label: Greenbelt boundary
-      description: Protected green space surrounding Greater Golden Horseshoe
+      description: Protected green space surrounding Greater Golden Horseshoe (857,000 ha)
 
     info:
-      description: Ontario Greenbelt - a protected area of green space, farmland, forests, wetlands, and watersheds surrounding the Greater Golden Horseshoe. Established in 2005 under the Greenbelt Act.
+      description: Ontario Greenbelt outer boundary - a protected area of green space, farmland, forests, wetlands, and watersheds surrounding the Greater Golden Horseshoe. Established in 2005 under the Greenbelt Act. Covers approximately 857,000 hectares.
+
+  - id: greenbelt_designation
+    name: Greenbelt Land Use Designations
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/greenbelt_designation.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color:
+          property: designation
+          type: categorical
+          values:
+            Protected Countryside: '#228B22'
+            Urban River Valley: '#4169E1'
+            Niagara Escarpment Plan: '#8B4513'
+            Oak Ridges Moraine Conservation Plan: '#8B7355'
+          default: '#228B22'
+        opacity: 0.4
+      outline:
+        color: '#006400'
+        width: 1
+        opacity: 0.7
+
+    popup:
+      title_field: designation
+      fields:
+        - label: Designation
+          field: designation
+        - label: Area (hectares)
+          field: hectares
+          format: '{value:,.1f}'
+        - label: Parent Area
+          field: parent_area
+
+    legend:
+      type: items
+      title: Greenbelt Designations
+      items:
+        - color: rgba(34, 139, 34, 0.4)
+          border: 1px solid #006400
+          label: Protected Countryside
+        - color: rgba(65, 105, 225, 0.4)
+          border: 1px solid #006400
+          label: Urban River Valley
+        - color: rgba(139, 69, 19, 0.4)
+          border: 1px solid #006400
+          label: Niagara Escarpment Plan
+        - color: rgba(139, 115, 85, 0.4)
+          border: 1px solid #006400
+          label: Oak Ridges Moraine Plan
+      description: Land use designations within the Ontario Greenbelt
+
+    info:
+      description: Land use designations within the Ontario Greenbelt. Protected Countryside includes agricultural and rural lands. Urban River Valleys are protected river corridors in urban areas. Areas may also fall under the Niagara Escarpment Plan or Oak Ridges Moraine Conservation Plan.
 
   - id: oak_ridges_moraine
     name: Oak Ridges Moraine Boundary
