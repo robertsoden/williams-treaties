@@ -443,6 +443,110 @@ layers:
     info:
       description: Ontario Greenbelt - a protected area of green space, farmland, forests, wetlands, and watersheds surrounding the Greater Golden Horseshoe. Established in 2005 under the Greenbelt Act.
 
+  - id: oak_ridges_moraine
+    name: Oak Ridges Moraine Boundary
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/oak_ridges_moraine_boundary.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#8B7355'
+        opacity: 0.25
+      outline:
+        color: '#5D4E37'
+        width: 2.5
+        opacity: 0.9
+
+    popup:
+      title_default: Oak Ridges Moraine
+      fields:
+        - label: Designation
+          field: designation
+        - label: Area (hectares)
+          field: hectares
+          format: '{value:,.0f}'
+
+    legend:
+      type: items
+      title: Oak Ridges Moraine
+      items:
+        - color: rgba(139, 115, 85, 0.25)
+          border: 2.5px solid #5D4E37
+          label: Moraine planning area
+      description: Protected geological landform in southern Ontario
+
+    info:
+      description: Oak Ridges Moraine Planning Area - a protected geological landform stretching 160 km from the Trent River to the Niagara Escarpment. Established under provincial legislation in October 2001, the moraine is a critical groundwater recharge area and ecological corridor.
+
+  - id: oak_ridges_moraine_land_use
+    name: Oak Ridges Moraine Land Use
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/oak_ridges_moraine_land_use.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color:
+          property: designation
+          type: categorical
+          values:
+            Natural Core Area: '#1a5e1a'
+            Natural Linkage Area: '#4d9d4d'
+            Countryside Area: '#c4a35a'
+            Settlement Area: '#d9534f'
+            Rural Settlement: '#f0ad4e'
+            Palgrave Estates Residential Community: '#999999'
+          default: '#A0826D'
+        opacity: 0.45
+      outline:
+        color: '#5D4E37'
+        width: 1
+        opacity: 0.7
+
+    popup:
+      title_field: designation
+      fields:
+        - label: Designation
+          field: designation
+        - label: Area (hectares)
+          field: hectares
+          format: '{value:,.1f}'
+        - label: Parent Area
+          field: parent_area
+
+    legend:
+      type: items
+      title: ORM Land Use Designations
+      items:
+        - color: rgba(26, 94, 26, 0.45)
+          border: 1px solid #5D4E37
+          label: Natural Core Area
+        - color: rgba(77, 157, 77, 0.45)
+          border: 1px solid #5D4E37
+          label: Natural Linkage Area
+        - color: rgba(196, 163, 90, 0.45)
+          border: 1px solid #5D4E37
+          label: Countryside Area
+        - color: rgba(217, 83, 79, 0.45)
+          border: 1px solid #5D4E37
+          label: Settlement Area
+        - color: rgba(240, 173, 78, 0.45)
+          border: 1px solid #5D4E37
+          label: Rural Settlement
+      description: Land use designations under the Oak Ridges Moraine Conservation Plan
+
+    info:
+      description: Land use designations under the Oak Ridges Moraine Conservation Plan. Natural Core Areas have the highest protection, Natural Linkage Areas maintain ecological corridors, Countryside Areas permit agricultural/rural uses, and Settlement Areas are existing urban zones. Digitized at 1:10,000 scale.
+
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
