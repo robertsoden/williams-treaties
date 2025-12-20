@@ -445,6 +445,16 @@ class LayerManager {
                 interpolateExpr.push(value, color);
             });
             fillPaint['fill-color'] = interpolateExpr;
+        } else if (layer.style.fill.color.type === 'categorical') {
+            // Build match expression for categorical data
+            const field = layer.style.fill.color.property || layer.style.fill.color.field;
+            const colorExpr = ['match', ['get', field]];
+            Object.entries(layer.style.fill.color.values).forEach(([key, value]) => {
+                colorExpr.push(key, value);
+            });
+            // Add default color as fallback
+            colorExpr.push(layer.style.fill.color.default || '#888888');
+            fillPaint['fill-color'] = colorExpr;
         }
 
         this.map.addLayer({
