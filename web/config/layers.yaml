@@ -641,6 +641,42 @@ layers:
     info:
       description: The Oak Ridges Trail is a long-distance hiking route following the Oak Ridges Moraine across south-central Ontario. Maintained by the Oak Ridges Trail Association, it connects natural areas along the moraine within the Williams Treaty territory.
 
+  - id: osm_waterways
+    name: Streams & Rivers
+    category: boundaries
+    type: line
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/hydrology/osm_waterways.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      line:
+        color: '#4a90d9'
+        width: 1
+        opacity: 0.7
+
+    popup:
+      title_field: name
+      title_default: Watercourse
+      fields:
+        - label: Name
+          field: name
+        - label: Type
+          field: waterway_type
+
+    legend:
+      type: items
+      title: Streams & Rivers
+      items:
+        - color: '#4a90d9'
+          label: Watercourse (stream / river)
+      description: Waterway network within the Oak Ridges Trail corridor
+
+    info:
+      description: Stream and river network within the Oak Ridges Trail corridor, sourced from OpenStreetMap (© OpenStreetMap contributors, ODbL). Includes streams, rivers, canals, and ditches. Used to identify where the trail crosses watercourses.
+
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
@@ -1084,6 +1120,44 @@ layers:
 
     info:
       description: Areas on Georgina Island (Chippewas of Georgina Island First Nation) at risk of flooding under a 2m water level rise scenario.
+
+  - id: trail_stream_crossings
+    name: Trail Stream Crossings
+    category: climate
+    type: point
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/hydrology/oak_ridges_trail_stream_crossings.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      circle:
+        radius: 5
+        color: '#1f78b4'
+        opacity: 0.9
+        stroke_width: 1.5
+        stroke_color: '#ffffff'
+
+    popup:
+      title_field: stream_name
+      title_default: Stream Crossing
+      fields:
+        - label: Stream
+          field: stream_name
+        - label: Waterway Type
+          field: waterway_type
+
+    legend:
+      type: items
+      title: Trail Stream Crossings
+      items:
+        - color: '#1f78b4'
+          label: Point where the trail crosses a watercourse
+      description: 116 crossings — potential washout / flood-vulnerability points
+
+    info:
+      description: Points where the Oak Ridges Trail crosses a mapped watercourse (116 total, ~1 every 2.3 km), computed by intersecting the trail route with the OpenStreetMap waterway network (© OpenStreetMap contributors, ODbL). These are potential washout and flood-vulnerability points for trail infrastructure. Crossings are geometric intersections and do not indicate whether a bridge or culvert is present.
 
   # ============================================================================
   # VEGETATION
