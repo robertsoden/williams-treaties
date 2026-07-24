@@ -48,3 +48,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Local scratch/staging (large data exports, generated PDFs, data-pipeline drafts)
+new/
