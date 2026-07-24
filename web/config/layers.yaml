@@ -607,6 +607,40 @@ layers:
     info:
       description: Land use designations under the Oak Ridges Moraine Conservation Plan. Natural Core Areas have the highest protection, Natural Linkage Areas maintain ecological corridors, Countryside Areas permit agricultural/rural uses, and Settlement Areas are existing urban zones. Digitized at 1:10,000 scale.
 
+  - id: oak_ridges_trail
+    name: Oak Ridges Trail
+    category: boundaries
+    type: line
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/environmental/oak_ridges_trail.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      line:
+        color: '#d94801'
+        width: 2.5
+        opacity: 0.9
+
+    popup:
+      title_field: name
+      title_default: Oak Ridges Trail
+      fields:
+        - label: Section
+          field: name
+
+    legend:
+      type: items
+      title: Oak Ridges Trail
+      items:
+        - color: '#d94801'
+          label: Trail route
+      description: Main hiking route along the Oak Ridges Moraine
+
+    info:
+      description: The Oak Ridges Trail is a long-distance hiking route following the Oak Ridges Moraine across south-central Ontario. Maintained by the Oak Ridges Trail Association, it connects natural areas along the moraine within the Williams Treaty territory.
+
   # ============================================================================
   # ORGANIZATIONS
   # ============================================================================
