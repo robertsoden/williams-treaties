@@ -443,23 +443,32 @@ def layer_status():
             # Mapbox tilesets are always considered available
             if data_url.startswith('mapbox://'):
                 data_exists = True
-            elif DATA_MODE == 'remote' and DATA_REMOTE_URL:
-                # Check remote URL
+            elif is_external_url(data_url):
+                # Absolute http(s) URL (e.g. S3-hosted GeoJSON): check it directly
                 try:
-                    # Remove /data/ prefix and construct full URL
-                    file_path = data_url.replace('/data/', '')
-                    full_url = urljoin(DATA_REMOTE_URL + '/', file_path)
-                    response = requests.head(full_url, timeout=5)
+                    response = requests.head(data_url, timeout=5, allow_redirects=True)
                     data_exists = response.status_code == 200
                     if not data_exists:
                         error_msg = f'HTTP {response.status_code}'
                 except Exception as e:
                     error_msg = str(e)
-            elif DATA_MODE == 'local':
-                # Check local file
-                local_file = DATA_DIR / data_url.replace('/data/', '')
-                data_exists = local_file.exists()
-                if not data_exists:
+            else:
+                # Relative /data/ path: resolve per data-source mode.
+                # In hybrid mode try local first, then fall back to remote.
+                file_path = data_url.replace('/data/', '')
+                if DATA_MODE in ('local', 'hybrid'):
+                    local_file = DATA_DIR / file_path
+                    data_exists = local_file.exists()
+                if not data_exists and DATA_MODE in ('remote', 'hybrid') and DATA_REMOTE_URL:
+                    try:
+                        full_url = urljoin(DATA_REMOTE_URL + '/', file_path)
+                        response = requests.head(full_url, timeout=5, allow_redirects=True)
+                        data_exists = response.status_code == 200
+                        if not data_exists:
+                            error_msg = f'HTTP {response.status_code}'
+                    except Exception as e:
+                        error_msg = str(e)
+                elif not data_exists:
                     error_msg = 'File not found locally'
 
         # Update summary counts
