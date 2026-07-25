@@ -490,21 +490,53 @@ class LayerManager {
         const style = layer.style?.line || layer.style || {};
         const beforeLayer = style.before_layer || undefined;
 
+        const paint = {
+            'line-color': this.buildPaintExpression(style.color, '#000000'),
+            'line-width': this.buildPaintExpression(style.width, 1),
+            'line-opacity': style.opacity !== undefined ? style.opacity : 1
+        };
+        if (style.dasharray) paint['line-dasharray'] = style.dasharray;
+
         this.map.addLayer({
             id: `${layer.id}-line`,
             type: 'line',
             source: layer.id,
-            paint: {
-                'line-color': style.color || '#000000',
-                'line-width': style.width || 1,
-                'line-opacity': style.opacity !== undefined ? style.opacity : 1
-            }
+            paint
         }, beforeLayer);
 
         // Initially hide if not visible
         if (!layer.initial_visibility) {
             this.map.setLayoutProperty(`${layer.id}-line`, 'visibility', 'none');
         }
+    }
+
+    /**
+     * Resolve a style value that may be a literal (string/number) or a
+     * data-driven spec ({type: categorical|interpolate|step, field, ...})
+     * into a Mapbox GL paint value.
+     */
+    buildPaintExpression(spec, fallback) {
+        if (spec === undefined || spec === null) return fallback;
+        if (typeof spec === 'string' || typeof spec === 'number') return spec;
+
+        const field = spec.property || spec.field;
+        if (spec.type === 'categorical') {
+            const expr = ['match', ['get', field]];
+            Object.entries(spec.values).forEach(([key, value]) => expr.push(key, value));
+            expr.push(spec.default !== undefined ? spec.default : fallback);
+            return expr;
+        }
+        if (spec.type === 'interpolate') {
+            const expr = ['interpolate', ['linear'], ['get', field]];
+            spec.stops.forEach(([value, out]) => expr.push(value, out));
+            return expr;
+        }
+        if (spec.type === 'step') {
+            const expr = ['step', ['get', field], spec.base];
+            spec.stops.forEach(([threshold, out]) => expr.push(threshold, out));
+            return expr;
+        }
+        return fallback;
     }
 
     /**

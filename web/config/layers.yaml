@@ -641,11 +641,53 @@ layers:
     info:
       description: The Oak Ridges Trail is a long-distance hiking route following the Oak Ridges Moraine across south-central Ontario. Maintained by the Oak Ridges Trail Association, it connects natural areas along the moraine within the Williams Treaty territory.
 
-  - id: osm_waterways
+  - id: ohn_waterbodies
+    name: Lakes & Waterbodies
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/hydrology/ohn_waterbodies.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      fill:
+        color: '#a8cfe8'
+        opacity: 0.6
+      outline:
+        color: '#4a90d9'
+        width: 0.5
+        opacity: 0.8
+
+    popup:
+      title_field: name
+      title_default: Waterbody
+      fields:
+        - label: Name
+          field: name
+        - label: Type
+          field: WATERBODY_TYPE
+        - label: Permanency
+          field: PERMANENCY
+
+    legend:
+      type: items
+      title: Lakes & Waterbodies
+      items:
+        - color: rgba(168, 207, 232, 0.6)
+          border: 0.5px solid #4a90d9
+          label: Lake / pond / wide river
+      description: Ontario Hydro Network waterbodies in the trail corridor
+
+    info:
+      description: Lakes, ponds, reservoirs, and wide rivers (mapped as polygons) from the Ontario Hydro Network (OHN), Land Information Ontario. Rivers wide enough to be mapped as areas appear here rather than in the Streams & Rivers line layer.
+
+  - id: ohn_streams
     name: Streams & Rivers
     category: boundaries
     type: line
-    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/hydrology/osm_waterways.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/hydrology/ohn_streams.geojson
     initial_visibility: false
     status: available
     active: true
@@ -653,9 +695,27 @@ layers:
 
     style:
       line:
-        color: '#4a90d9'
-        width: 1
-        opacity: 0.7
+        # Line color by permanency (permanent vs seasonal/intermittent)
+        color:
+          type: categorical
+          field: PERMANENCY
+          values:
+            Permanent: '#2b6cb0'
+            Intermittent: '#8bb8dc'
+          default: '#4a90d9'
+        # Line width scales with Strahler stream order (headwater rill -> river)
+        width:
+          type: interpolate
+          field: STREAM_ORDER
+          stops:
+            - [1, 0.4]
+            - [2, 0.8]
+            - [3, 1.4]
+            - [4, 2.2]
+            - [5, 3.2]
+            - [7, 5.0]
+            - [9, 7.0]
+        opacity: 0.8
 
     popup:
       title_field: name
@@ -664,18 +724,24 @@ layers:
         - label: Name
           field: name
         - label: Type
-          field: waterway_type
+          field: WATERCOURSE_TYPE
+        - label: Permanency
+          field: PERMANENCY
+        - label: Stream Order (Strahler)
+          field: STREAM_ORDER
 
     legend:
       type: items
       title: Streams & Rivers
       items:
-        - color: '#4a90d9'
-          label: Watercourse (stream / river)
-      description: Waterway network within the Oak Ridges Trail corridor
+        - color: '#2b6cb0'
+          label: Permanent watercourse
+        - color: '#8bb8dc'
+          label: Intermittent (seasonal)
+      description: Line width scales with stream order (thicker = larger). Ontario Hydro Network.
 
     info:
-      description: Stream and river network within the Oak Ridges Trail corridor, sourced from OpenStreetMap (© OpenStreetMap contributors, ODbL). Includes streams, rivers, canals, and ditches. Used to identify where the trail crosses watercourses.
+      description: Stream and river network from the Ontario Hydro Network (OHN), Land Information Ontario — the authoritative provincial hydrography. Line colour distinguishes permanent from intermittent (seasonal) watercourses; line width scales with Strahler stream order, so small headwater channels render thin and larger downstream rivers render thick. Stream order is computed on the trail-corridor network and is relative within that extent.
 
   # ============================================================================
   # ORGANIZATIONS
@@ -1134,10 +1200,17 @@ layers:
     style:
       circle:
         radius: 5
-        color: '#1f78b4'
         opacity: 0.9
         stroke_width: 1.5
         stroke_color: '#ffffff'
+        # Colour by permanency: permanent crossings are higher-consequence
+        color:
+          type: categorical
+          field: permanency
+          values:
+            Permanent: '#08519c'
+            Intermittent: '#6baed6'
+          default: '#1f78b4'
 
     popup:
       title_field: stream_name
@@ -1145,19 +1218,23 @@ layers:
       fields:
         - label: Stream
           field: stream_name
-        - label: Waterway Type
-          field: waterway_type
+        - label: Permanency
+          field: permanency
+        - label: Stream Order (Strahler)
+          field: stream_order
 
     legend:
       type: items
       title: Trail Stream Crossings
       items:
-        - color: '#1f78b4'
-          label: Point where the trail crosses a watercourse
-      description: 116 crossings — potential washout / flood-vulnerability points
+        - color: '#08519c'
+          label: Permanent watercourse crossing
+        - color: '#6baed6'
+          label: Intermittent (seasonal) crossing
+      description: 123 crossings — potential washout / flood-vulnerability points
 
     info:
-      description: Points where the Oak Ridges Trail crosses a mapped watercourse (116 total, ~1 every 2.3 km), computed by intersecting the trail route with the OpenStreetMap waterway network (© OpenStreetMap contributors, ODbL). These are potential washout and flood-vulnerability points for trail infrastructure. Crossings are geometric intersections and do not indicate whether a bridge or culvert is present.
+      description: Points where the Oak Ridges Trail crosses a mapped watercourse (123 total, ~1 every 2.2 km), computed by intersecting the trail route with the Ontario Hydro Network (OHN). Most are small headwater streams (67 first-order, 38 second-order); 82 are permanent and 41 intermittent. These are potential washout and flood-vulnerability points for trail infrastructure. Crossings are geometric intersections and do not indicate whether a bridge or culvert is present.
 
   # ============================================================================
   # VEGETATION
