@@ -579,9 +579,20 @@ class LayerManager {
         });
 
         // Build paint properties
+        const s = layer.style || {};
         const paint = {
-            'raster-opacity': layer.style?.opacity || 0.7
+            'raster-opacity': s.opacity !== undefined ? s.opacity : 0.7
         };
+
+        // Optional tone adjustments — useful for softening a loud pre-rendered
+        // thematic raster (e.g. land cover) into a muted base layer.
+        if (s.saturation !== undefined) paint['raster-saturation'] = s.saturation;   // -1..1
+        if (s.contrast !== undefined) paint['raster-contrast'] = s.contrast;         // -1..1
+        if (s.brightness_min !== undefined) paint['raster-brightness-min'] = s.brightness_min; // 0..1
+        if (s.brightness_max !== undefined) paint['raster-brightness-max'] = s.brightness_max; // 0..1
+        if (s.hue_rotate !== undefined) paint['raster-hue-rotate'] = s.hue_rotate;   // degrees
+        const layout = {};
+        if (s.resampling) layout['raster-resampling'] = s.resampling;                // 'linear' | 'nearest'
 
         // Apply raster-color styling if defined
         if (layer.style?.raster_color) {
@@ -630,7 +641,8 @@ class LayerManager {
             id: `${layer.id}-layer`,
             type: 'raster',
             source: layer.id,
-            paint: paint
+            paint: paint,
+            layout: layout
         }, beforeLayer);
 
         // Initially hide if not visible

@@ -312,6 +312,87 @@ layers:
     info:
       description: Ontario Provincial Parks classified by conservation and recreation purpose
 
+  - id: federal_protected
+    name: Federal Protected Areas
+    category: boundaries
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/protected_areas/ontario_federal_protected.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    data_source:
+      source_info:
+        provider: "Land Information Ontario / Government of Canada"
+        dataset: "Federal Protected Area"
+        license: "Open Government Licence - Ontario"
+        license_url: "https://www.ontario.ca/page/open-government-licence-ontario"
+
+    style:
+      fill:
+        # Colour by federal designation
+        color:
+          type: categorical
+          field: protected_area_type
+          values:
+            National Park: '#1b7837'                    # Dark green - Parks Canada
+            National Marine Conservation Area: '#3690c0' # Blue - marine
+            Heritage Canal: '#7bccc4'                    # Teal - canals
+            National Wildlife Area: '#f16913'            # Orange - ECCC habitat
+            Other Federal Protected Area: '#807dba'      # Purple - bird sanctuaries
+          default: '#66c2a4'
+        opacity: 0.4
+      outline:
+        color: '#333333'
+        width: 1.5
+        opacity: 0.7
+
+    popup:
+      title_field: name
+      title_default: Federal Protected Area
+      fields:
+        - label: Designation
+          field: protected_area_type
+        - label: Managed By
+          field: agency
+        - label: Area (ha)
+          field: area_ha
+          format: '{value:,.1f} ha'
+        - label: Location Accuracy
+          field: location_accuracy
+          optional: true
+
+    legend:
+      type: items
+      title: Federal Protected Areas
+      items:
+        - color: rgba(27, 120, 55, 0.4)
+          border: 1.5px solid #333333
+          label: National Park
+        - color: rgba(54, 144, 192, 0.4)
+          border: 1.5px solid #333333
+          label: National Marine Conservation Area
+        - color: rgba(123, 204, 196, 0.4)
+          border: 1.5px solid #333333
+          label: Heritage Canal
+        - color: rgba(241, 105, 19, 0.4)
+          border: 1.5px solid #333333
+          label: National Wildlife Area
+        - color: rgba(128, 125, 186, 0.4)
+          border: 1.5px solid #333333
+          label: Migratory Bird Sanctuary
+      description: Federally-designated protected areas across Ontario (Parks Canada & ECCC)
+
+    info:
+      description: |
+        Federal protected areas across Ontario: 9 National Parks (including Georgian Bay
+        Islands, which lies within Williams Treaty territory near Beausoleil / Chimnissing),
+        National Wildlife Areas, Migratory Bird Sanctuaries, Heritage Canals, and the Lake
+        Superior National Marine Conservation Area. National Parks and Marine/Canal sites are
+        managed by Parks Canada; Wildlife Areas and Bird Sanctuaries by Environment and Climate
+        Change Canada. Source: Land Information Ontario "Federal Protected Area" dataset.
+
   - id: wetlands
     name: Wetlands
     category: boundaries
@@ -1274,16 +1355,18 @@ layers:
     name: Land Cover 2020
     category: satellite
     type: mapbox-raster
-    data_url: mapbox://robertsoden.lc2020colored
+    data_url: mapbox://robertsoden.lc2020base
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
 
     style:
-      opacity: 0.8
+      # Muted base palette is baked into the tileset (robertsoden.lc2020base),
+      # so no runtime tone adjustment is needed. Full 30m detail at high zoom;
+      # Mapbox serves smooth averaged overviews when zoomed out.
+      opacity: 0.9
       before_layer: treaty-fill
-      # Note: raster_color removed - tiles are pre-rendered RGB from Mapbox upload
 
     legend:
       type: categorical
@@ -1291,41 +1374,41 @@ layers:
       categories:
         - value: 1
           label: Needleleaf Forest
-          color: '#003d00'
+          color: '#4a6b52'
         - value: 2
           label: Taiga Forest
-          color: '#949c70'
+          color: '#6e8270'
         - value: 5
           label: Deciduous Forest
-          color: '#148c3d'
+          color: '#7fa06a'
         - value: 6
           label: Mixed Forest
-          color: '#5c752b'
+          color: '#96ad78'
         - value: 8
           label: Shrubland
-          color: '#b38a33'
+          color: '#b6ac82'
         - value: 10
           label: Grassland
-          color: '#e1cf8a'
+          color: '#cdc79a'
         - value: 14
           label: Wetland
-          color: '#6ba38a'
+          color: '#7fa8a0'
         - value: 15
           label: Cropland
-          color: '#e6ae66'
+          color: '#d8c89a'
         - value: 16
           label: Barren
-          color: '#a8abae'
+          color: '#c2bcb2'
         - value: 17
           label: Urban
-          color: '#dc2126'
+          color: '#d3c1c1'
         - value: 18
           label: Water
-          color: '#4c70a3'
+          color: '#9fc0d9'
         - value: 19
           label: Snow/Ice
-          color: '#fffaff'
-      description: NALCMS 2020 land cover classification
+          color: '#f0f2f5'
+      description: NALCMS 2020 land cover — muted base palette (urban shown as neutral, not red)
 
     info:
       description: |
