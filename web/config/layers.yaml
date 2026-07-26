@@ -1402,13 +1402,10 @@ layers:
         - value: 17
           label: Urban
           color: '#d3c1c1'
-        - value: 18
-          label: Water
-          color: '#9fc0d9'
         - value: 19
           label: Snow/Ice
           color: '#f0f2f5'
-      description: NALCMS 2020 land cover — muted base palette (urban shown as neutral, not red)
+      description: NALCMS 2020 land cover — muted base palette (urban neutral, not red). Water is transparent so the basemap renders it.
 
     info:
       description: |
