@@ -1546,19 +1546,24 @@ layers:
   - id: hillshade
     name: Terrain Hillshade
     category: topography
-    type: arcgis-tile
-    data_url: https://tiles.arcgis.com/tiles/B6yKvIZqzuOr0jBR/arcgis/rest/services/Canada_Hillshade/MapServer
+    type: hillshade
+    data_url: mapbox://mapbox.mapbox-terrain-dem-v1
     initial_visibility: false
     status: available
     active: true
     lazy_load: true
 
     style:
-      opacity: 0.65
       before_layer: treaty-fill
+      exaggeration: 0.45
+      # Transparent highlight => shadows-only relief, no distracting white wash
+      highlight_color: 'rgba(255,255,255,0)'
+      shadow_color: 'rgba(80,70,55,0.5)'
+      accent_color: 'rgba(0,0,0,0)'
+      illumination_direction: 335
 
     info:
-      description: "Terrain hillshade showing topographic relief with shading. Covers all of Canada including Ontario. Source: ArcGIS Online / Esri Canada."
+      description: "Shaded topographic relief rendered from the Mapbox Terrain DEM. Only hillshade shadows are drawn (transparent highlights) so the relief adds depth without washing out the map. Replaces the earlier pre-rendered Esri hillshade tiles."
 
   - id: contours
     name: Contour Lines
@@ -1590,6 +1595,94 @@ layers:
   # ============================================================================
   # BIODIVERSITY
   # ============================================================================
+
+  - id: critical_habitat
+    name: Critical Habitat (Species at Risk)
+    category: biodiversity
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/critical_habitat_species_at_risk.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    data_source:
+      source_info:
+        provider: "Environment and Climate Change Canada (Canadian Wildlife Service)"
+        dataset: "Critical Habitat for Species at Risk - National View"
+        license: "Open Government Licence - Canada"
+        license_url: "https://open.canada.ca/en/open-government-licence-canada"
+        source_url: "https://open.canada.ca/data/en/dataset/47caa405-be2b-4e9e-8f53-c478ade2ca74"
+        update_frequency: "Ongoing"
+
+    style:
+      fill:
+        # Colour by SARA (Species at Risk Act) status
+        color:
+          type: categorical
+          field: sara_status
+          values:
+            Extirpated: '#67000d'      # Darkest - locally lost
+            Endangered: '#d73027'      # Red
+            Threatened: '#fc8d59'      # Orange
+            Special Concern: '#fee08b' # Yellow
+          default: '#9e9e9e'
+        opacity: 0.5
+      outline:
+        color: '#7f0000'
+        width: 1
+        opacity: 0.8
+      before_layer: treaty-fill
+
+    popup:
+      title_field: common_name
+      title_default: Critical Habitat
+      fields:
+        - label: Species
+          field: common_name
+        - label: Scientific Name
+          field: scientific_name
+        - label: SARA Status
+          field: sara_status
+        - label: Taxon
+          field: taxon
+        - label: Population
+          field: population
+          optional: true
+        - label: Listing
+          field: listing
+        - label: Critical Habitat Area (ha)
+          field: area_ha
+          format: '{value:,.1f} ha'
+        - label: Recovery Document
+          field: recovery_document
+          optional: true
+
+    legend:
+      type: items
+      title: Critical Habitat by SARA Status
+      items:
+        - color: rgba(215, 48, 39, 0.5)
+          border: 1px solid #7f0000
+          label: Endangered
+        - color: rgba(252, 141, 89, 0.5)
+          border: 1px solid #7f0000
+          label: Threatened
+        - color: rgba(254, 224, 139, 0.5)
+          border: 1px solid #7f0000
+          label: Special Concern
+      description: Legally-defined critical habitat for federally-listed species at risk
+
+    info:
+      description: |
+        Critical habitat for 29 federally-listed species at risk within Williams Treaty
+        territory (15 Endangered, 14 Threatened), from Environment and Climate Change Canada's
+        national Species at Risk Act (SARA) dataset. Includes birds (e.g. Eastern Whip-poor-will,
+        Golden-winged Warbler), reptiles (Blanding's Turtle, Eastern Massasauga, Eastern Foxsnake),
+        amphibians (Jefferson Salamander, Western Chorus Frog), bats (Little Brown Myotis,
+        Tri-coloured Bat), plants, and lichen. Polygons are dissolved per species from the
+        published critical-habitat grid and clipped to the treaty boundary. Critical habitat is
+        the legally-defined habitat necessary for a species' survival or recovery under SARA.
 
   - id: ebird
     name: eBird Observations

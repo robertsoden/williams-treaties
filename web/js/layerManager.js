@@ -300,6 +300,8 @@ class LayerManager {
                 return await this.loadArcGISImageServerLayer(layer);
             } else if (layer.type === 'arcgis-tile') {
                 return await this.loadArcGISTileLayer(layer);
+            } else if (layer.type === 'hillshade') {
+                return await this.loadHillshadeLayer(layer);
             }
         } catch (error) {
             // Enhanced error logging with full context
@@ -763,6 +765,49 @@ class LayerManager {
     }
 
     /**
+     * Load a native Mapbox hillshade layer from a terrain-DEM source.
+     * Unlike a pre-rendered hillshade image, this renders relief directly, so
+     * the highlight colour can be made transparent — only the shadows show,
+     * with no distracting white/grey wash over flat terrain.
+     */
+    async loadHillshadeLayer(layer) {
+        console.log(`Loading hillshade layer: ${layer.name}`);
+        const s = layer.style || {};
+
+        this.map.addSource(layer.id, {
+            type: 'raster-dem',
+            url: layer.data_url || s.dem_source || 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            tileSize: 512,
+            maxzoom: 14
+        });
+
+        const beforeLayer = s.before_layer || undefined;
+
+        this.map.addLayer({
+            id: `${layer.id}-layer`,
+            type: 'hillshade',
+            source: layer.id,
+            paint: {
+                'hillshade-exaggeration': s.exaggeration !== undefined ? s.exaggeration : 0.45,
+                // Transparent highlight => no white haze over lit/flat areas
+                'hillshade-highlight-color': s.highlight_color || 'rgba(255,255,255,0)',
+                'hillshade-shadow-color': s.shadow_color || 'rgba(80,70,55,0.5)',
+                'hillshade-accent-color': s.accent_color || 'rgba(0,0,0,0)',
+                'hillshade-illumination-direction': s.illumination_direction !== undefined ? s.illumination_direction : 335,
+                'hillshade-illumination-anchor': s.illumination_anchor || 'viewport'
+            }
+        }, beforeLayer);
+
+        if (!layer.initial_visibility) {
+            this.map.setLayoutProperty(`${layer.id}-layer`, 'visibility', 'none');
+        }
+
+        this.loadedLayers.add(layer.id);
+        console.log(`✓ ${layer.name} loaded (native hillshade)`);
+        return true;
+    }
+
+    /**
      * Render raster using canvas
      */
     async renderRasterWithCanvas(layer, georaster) {
@@ -1102,7 +1147,7 @@ class LayerManager {
                     this.map.setLayoutProperty(`${layerId}-line`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
                 }
-            } else if (layer.type === 'raster' || layer.type === 'mapbox-raster' || layer.type === 'arcgis-imageserver' || layer.type === 'arcgis-tile') {
+            } else if (layer.type === 'raster' || layer.type === 'mapbox-raster' || layer.type === 'arcgis-imageserver' || layer.type === 'arcgis-tile' || layer.type === 'hillshade') {
                 if (this.map.getLayer(`${layerId}-layer`)) {
                     this.map.setLayoutProperty(`${layerId}-layer`, 'visibility', visible ? 'visible' : 'none');
                     console.log(`✓ ${layer.name} ${visible ? 'shown' : 'hidden'}`);
