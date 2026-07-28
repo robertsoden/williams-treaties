@@ -1600,7 +1600,7 @@ layers:
     name: Critical Habitat (Species at Risk)
     category: biodiversity
     type: polygon
-    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/critical_habitat_species_at_risk.geojson
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/critical_habitat_richness.geojson
     initial_visibility: false
     status: available
     active: true
@@ -1617,61 +1617,51 @@ layers:
 
     style:
       fill:
-        # Colour by SARA (Species at Risk Act) status
+        # Choropleth by how many species have critical habitat at each location.
+        # The source stores one polygon per species and those overlap almost
+        # completely (union = 100% of the territory, 4 species deep on average),
+        # so they are overlaid into non-overlapping richness bands upstream by
+        # scripts/build_critical_habitat_richness.py. Nothing stacks here.
         color:
-          type: categorical
-          field: sara_status
-          values:
-            Extirpated: '#67000d'      # Darkest - locally lost
-            Endangered: '#d73027'      # Red
-            Threatened: '#fc8d59'      # Orange
-            Special Concern: '#fee08b' # Yellow
-          default: '#9e9e9e'
-        opacity: 0.5
+          type: interpolate
+          field: species_count
+          stops:
+            - [1, '#fff5f0']
+            - [2, '#fee0d2']
+            - [3, '#fcbba1']
+            - [4, '#fc9272']
+            - [6, '#fb6a4a']
+            - [8, '#de2d26']
+            - [11, '#a50f15']
+        opacity: 0.65
       outline:
-        color: '#7f0000'
-        width: 1
-        opacity: 0.8
+        color: '#ffffff'
+        width: 0.5
+        opacity: 0.35
       before_layer: treaty-fill
 
     popup:
-      title_field: common_name
       title_default: Critical Habitat
       fields:
-        - label: Species
-          field: common_name
-        - label: Scientific Name
-          field: scientific_name
-        - label: SARA Status
-          field: sara_status
-        - label: Taxon
-          field: taxon
-        - label: Population
-          field: population
-          optional: true
-        - label: Listing
-          field: listing
-        - label: Critical Habitat Area (ha)
+        - label: Species with critical habitat here
+          field: species_count
+          format: '{value:,.0f} species'
+        - label: Area at this level
           field: area_ha
-          format: '{value:,.1f} ha'
-        - label: Recovery Document
-          field: recovery_document
-          optional: true
+          format: '{value:,.0f} ha'
 
     legend:
-      type: items
-      title: Critical Habitat by SARA Status
-      items:
-        - color: rgba(215, 48, 39, 0.5)
-          border: 1px solid #7f0000
-          label: Endangered
-        - color: rgba(252, 141, 89, 0.5)
-          border: 1px solid #7f0000
-          label: Threatened
-        - color: rgba(254, 224, 139, 0.5)
-          border: 1px solid #7f0000
-          label: Special Concern
-      description: Legally-defined critical habitat for federally-listed species at risk
+      type: gradient
+      title: Overlapping Species at Risk
+      gradient: linear-gradient(to right, #fff5f0, #fee0d2, #fcbba1, #fc9272, #fb6a4a, #de2d26, #a50f15)
+      stops:
+        - value: 1
+          label: '1'
+        - value: 6
+          label: '6'
+        - value: 11
+          label: '11'
+      description: Number of federally-listed species whose critical habitat covers each area
 
     info:
       description: |
@@ -1680,9 +1670,16 @@ layers:
         national Species at Risk Act (SARA) dataset. Includes birds (e.g. Eastern Whip-poor-will,
         Golden-winged Warbler), reptiles (Blanding's Turtle, Eastern Massasauga, Eastern Foxsnake),
         amphibians (Jefferson Salamander, Western Chorus Frog), bats (Little Brown Myotis,
-        Tri-coloured Bat), plants, and lichen. Polygons are dissolved per species from the
-        published critical-habitat grid and clipped to the treaty boundary. Critical habitat is
-        the legally-defined habitat necessary for a species' survival or recovery under SARA.
+        Tri-coloured Bat), plants, and lichen. Critical habitat is the legally-defined habitat
+        necessary for a species' survival or recovery under SARA.
+
+        Because the mapped ranges overlap heavily — every part of the territory is critical
+        habitat for at least one species, and Blanding's Turtle alone covers 96.7% — this layer
+        shows habitat OVERLAP rather than individual species. The per-species polygons are
+        combined into non-overlapping regions and shaded by how many species share each one,
+        from 1 to 11. Darker areas carry obligations for more listed species at once. Note that
+        a high count reflects overlapping designated ranges, not confirmed occupancy; see the
+        At-Risk Species Sightings layer for observed locations.
 
   - id: inat_richness
     name: Biodiversity Richness (iNaturalist)

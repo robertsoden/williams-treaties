@@ -320,6 +320,42 @@ O-1a, O-1b: Grass/Open
 
 ---
 
+## 4. iNaturalist Biodiversity Layers (scripted refresh)
+
+Two Biodiversity layers are built directly from the iNaturalist API — no manual
+download is needed. Each build script writes the GeoJSON and can upload it to S3
+in one command (`--upload`). Both are polite to the API (throttled) and stay well
+within iNaturalist's rate limits.
+
+| Layer | Script | What it measures | Refresh cadence |
+|-------|--------|------------------|-----------------|
+| Biodiversity Richness (`inat_richness`) | `scripts/build_inaturalist_richness.py` | Distinct research-grade species per ~12 km grid cell (all taxa) | **~Once a year** — it's a cumulative count and drifts very slowly |
+| At-Risk Species Sightings (`sar_occurrences`) | `scripts/build_sar_occurrences.py` | Recent research-grade sightings of the SARA-listed species mapped in the Critical Habitat layer | **Seasonally / quarterly** — shows recent sightings; many species are only observable in-season |
+
+### Refreshing
+
+```bash
+# Biodiversity richness grid (~4 min; ~300 API calls). Annual is plenty.
+python scripts/build_inaturalist_richness.py --upload
+
+# At-risk species sightings (~1 min). Run each spring or quarterly.
+python scripts/build_sar_occurrences.py --upload
+```
+
+**Notes:**
+- The richness grid is CUMULATIVE (every species ever recorded per cell), so once
+  cells are well-sampled the numbers barely move month-to-month — refreshing more
+  often than yearly changes the map imperceptibly.
+- `build_sar_occurrences.py` reads its species list from the Critical Habitat
+  GeoJSON, so refresh that federal layer first if the SARA list has changed.
+- iNaturalist automatically **obscures the coordinates of conservation-sensitive
+  species** (rare turtles, snakes, etc.) to a coarse area. Those points are flagged
+  `Approximate` in `location_precision` and must not be treated as exact locations.
+- Neither layer stores individual observation records beyond what is needed for the
+  map; richness stores only per-cell counts.
+
+---
+
 ## Verification
 
 After downloading and processing each layer, verify using the web map:
