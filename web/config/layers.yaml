@@ -1555,11 +1555,11 @@ layers:
 
     style:
       before_layer: treaty-fill
-      exaggeration: 0.45
+      exaggeration: 1.0
       # Transparent highlight => shadows-only relief, no distracting white wash
       highlight_color: 'rgba(255,255,255,0)'
-      shadow_color: 'rgba(80,70,55,0.5)'
-      accent_color: 'rgba(0,0,0,0)'
+      shadow_color: 'rgba(45,40,30,0.75)'
+      accent_color: 'rgba(30,20,10,0.3)'
       illumination_direction: 335
 
     info:
@@ -1683,6 +1683,164 @@ layers:
         Tri-coloured Bat), plants, and lichen. Polygons are dissolved per species from the
         published critical-habitat grid and clipped to the treaty boundary. Critical habitat is
         the legally-defined habitat necessary for a species' survival or recovery under SARA.
+
+  - id: inat_richness
+    name: Biodiversity Richness (iNaturalist)
+    category: biodiversity
+    type: polygon
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/inaturalist_species_richness.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    data_source:
+      source_info:
+        provider: "iNaturalist"
+        dataset: "Research-grade observations (species_counts API)"
+        license: "Observations CC-BY-NC / CC0 (varies); aggregated counts"
+        source_url: "https://www.inaturalist.org"
+        update_frequency: "On demand"
+
+    style:
+      fill:
+        # Choropleth by distinct species observed per ~12 km grid cell
+        color:
+          type: interpolate
+          field: species_richness
+          stops:
+            - [42, '#edf8e9']
+            - [300, '#c7e9c0']
+            - [550, '#a1d99b']
+            - [900, '#74c476']
+            - [1400, '#41ab5d']
+            - [2200, '#238b45']
+            - [3500, '#005a32']
+        opacity: 0.6
+      outline:
+        color: '#ffffff'
+        width: 0.5
+        opacity: 0.4
+      before_layer: treaty-fill
+
+    popup:
+      title_default: Biodiversity Grid Cell
+      fields:
+        - label: Species Richness (distinct species)
+          field: species_richness
+          format: '{value:,.0f} species'
+
+    legend:
+      type: gradient
+      title: Species Richness (per ~12 km cell)
+      gradient: linear-gradient(to right, #edf8e9, #c7e9c0, #a1d99b, #74c476, #41ab5d, #238b45, #005a32)
+      stops:
+        - value: 42
+          label: '42'
+        - value: 1400
+          label: '~1,400'
+        - value: 5000
+          label: '5,000+'
+      description: Distinct research-grade species observed per grid cell (all taxa)
+
+    info:
+      description: |
+        Biodiversity richness across Williams Treaty territory, measured as the number of distinct
+        species with research-grade iNaturalist observations in each ~12 km (0.15°) grid cell, across
+        all taxa (plants, insects, birds, mammals, fungi, amphibians, reptiles, fish, and more).
+        Darker cells are biodiversity hotspots. Richness is influenced by both true biodiversity and
+        observation effort (areas near towns and trails are better sampled). Aggregated live from the
+        iNaturalist API; individual observation records are not stored. Complements the eBird
+        (birds-only) points and the Critical Habitat (species-at-risk) layers.
+
+  - id: sar_occurrences
+    name: At-Risk Species Sightings
+    category: biodiversity
+    type: point
+    data_url: https://ontario-environmental-data.s3.us-east-1.amazonaws.com/datasets/biodiversity/species_at_risk_occurrences.geojson
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    data_source:
+      source_info:
+        provider: "iNaturalist"
+        dataset: "Research-grade observations of SARA-listed species"
+        license: "CC-BY-NC / CC0 (per observation)"
+        source_url: "https://www.inaturalist.org"
+        update_frequency: "On demand"
+
+    style:
+      circle:
+        radius: 5
+        opacity: 0.85
+        stroke_width: 1
+        stroke_color: '#ffffff'
+        # Colour by taxonomic group
+        color:
+          type: categorical
+          field: taxon
+          values:
+            Aves: '#1f78b4'
+            Reptilia: '#33a02c'
+            Amphibia: '#6a3d9a'
+            Mammalia: '#e31a1c'
+            Plantae: '#b15928'
+            Fungi: '#ff7f00'
+            Insecta: '#a6cee3'
+          default: '#999999'
+
+    popup:
+      title_field: common_name
+      title_default: At-Risk Species Sighting
+      fields:
+        - label: Species
+          field: common_name
+        - label: Scientific Name
+          field: scientific_name
+        - label: SARA Status
+          field: sara_status
+        - label: Group
+          field: taxon
+        - label: Observed
+          field: observed_on
+        - label: Location
+          field: place
+          optional: true
+        - label: Location Precision
+          field: location_precision
+        - label: Observation
+          field: url
+          type: link
+
+    legend:
+      type: items
+      title: At-Risk Species Sightings
+      items:
+        - color: '#1f78b4'
+          label: Birds
+        - color: '#33a02c'
+          label: Reptiles
+        - color: '#6a3d9a'
+          label: Amphibians
+        - color: '#e31a1c'
+          label: Mammals
+        - color: '#b15928'
+          label: Plants
+        - color: '#ff7f00'
+          label: Fungi
+      description: Recent research-grade sightings of SARA-listed species
+
+    info:
+      description: |
+        Recent research-grade iNaturalist sightings (341 records, 21 species) of the federally
+        SARA-listed species at risk whose critical habitat is mapped in this project — actual
+        observation locations complementing the Critical Habitat polygons. Includes Blanding's
+        Turtle, Eastern Massasauga, Western Chorus Frog, Golden-winged Warbler, and others.
+        Locations of conservation-sensitive species (e.g. rare turtles and snakes) are
+        automatically obscured by iNaturalist to a coarse area to prevent poaching or collection;
+        such points are flagged "Approximate" and should not be treated as exact locations.
 
   - id: ebird
     name: eBird Observations
