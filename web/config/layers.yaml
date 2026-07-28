@@ -1413,6 +1413,41 @@ layers:
         classification for Ontario at 30m resolution, served via Mapbox Tilesets (zoom 5-11).
         Data source: Natural Resources Canada
 
+  - id: landcover_change
+    name: Land Cover Change 2010–2020
+    category: satellite
+    type: mapbox-raster
+    data_url: mapbox://robertsoden.lcchange1020
+    initial_visibility: false
+    status: available
+    active: true
+    lazy_load: true
+
+    style:
+      opacity: 0.9
+      before_layer: treaty-fill
+
+    legend:
+      type: items
+      title: Land Cover Change 2010–2020
+      items:
+        - color: '#d62f27'
+          label: New urban development
+        - color: '#f4953c'
+          label: Forest loss
+      description: High-confidence change only (contiguous ≥2 ha). Williams Treaty territory + buffer.
+
+    info:
+      description: |
+        Land cover change between 2010 and 2020 from NALCMS (30m), showing two
+        high-confidence transitions: conversion to Urban (new development) and
+        Forest loss (forest to non-forest). Computed within the Williams Treaty
+        territory plus an ~11 km buffer. Isolated pixel-level differences — largely
+        NALCMS classification noise between years — are filtered out by requiring
+        contiguous change of at least ~2 hectares. Read as indicative rather than
+        definitive: gradual change, water-edge flicker, and conversions smaller than
+        ~2 ha are intentionally not shown. Source: Natural Resources Canada / NALCMS.
+
   - id: landcover_2015
     name: Land Cover 2015
     category: satellite
