@@ -48,3 +48,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Cached remote tiles/data
+.cache/
